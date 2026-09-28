@@ -109,7 +109,7 @@
 
 <style>
     main {
-        min-height: 100vh;
+        min-height: 100dvh;
         background-color: var(--atrios-branco);
         padding: 1.5rem 1.75rem 2rem;
         display: flex;

@@ -470,7 +470,7 @@
 
 <style>
     main {
-        min-height: 100vh;
+        min-height: 100dvh;
         background-color: var(--cor-fundo);
         font-family: var(--fonte-corpo);
         padding-bottom: calc(var(--altura-barra) + 1.5rem);

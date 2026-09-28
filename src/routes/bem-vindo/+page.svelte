@@ -20,7 +20,7 @@
 
 <style>
     main {
-        min-height: 100vh;
+        min-height: 100dvh;
         background-image: url("/fundo-auth.jpg");
         background-size: cover;
         background-position: center;

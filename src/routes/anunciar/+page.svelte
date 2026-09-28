@@ -711,7 +711,7 @@
 
 <style>
     main {
-        min-height: 100vh;
+        min-height: 100dvh;
         background-color: var(--cor-fundo);
         font-family: var(--fonte-corpo);
         padding-bottom: 130px;
@@ -719,7 +719,7 @@
 
     /* Convite para virar anfitrião */
     .convite {
-        min-height: 100vh;
+        min-height: 100dvh;
         display: flex;
         flex-direction: column;
         align-items: center;

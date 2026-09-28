@@ -196,7 +196,7 @@
 
 <style>
     main {
-        min-height: 100vh;
+        min-height: 100dvh;
         background-color: var(--cor-fundo);
         padding: 1.75rem 1.25rem calc(var(--altura-barra) + 1.5rem);
         font-family: var(--fonte-corpo);

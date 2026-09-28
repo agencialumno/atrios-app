@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { bloquearGestosDoSistema } from "$lib/bloqueios";
     import { get } from "svelte/store";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
@@ -63,6 +64,7 @@
     }
 
     onMount(async () => {
+        bloquearGestosDoSistema();
         const token = localStorage.getItem("atrios_token");
         if (!token || get(auth).usuario) return;
 
