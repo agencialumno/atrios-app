@@ -1,0 +1,77 @@
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      APPLE_DEVELOPMENT_TEAM: KH97Q8M556
+      VITE_API_URL: https://victor.taile271e6.ts.net
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
+    steps:
+      - name: Baixar o codigo
+        uses: actions/checkout@v4
+
+      - name: Conferir os icones (a Apple recusa transparencia)
+        run: |
+          if [ -d src-tauri/icons/ios ]; then
+            for f in src-tauri/icons/ios/*.png; do
+              if sips -g hasAlpha "$f" | grep -q "yes"; then
+                echo "ERRO: o icone $f tem transparencia."
+                exit 1
+              fi
+            done
+          fi
+
+      - name: Escolher o Xcode mais recente
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Instalar Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - name: Guardar o cache do Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Instalar Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Instalar dependencias
+        run: |
+          brew install xcodegen || true
+          bun install
+
+      - name: Preparar a chave da App Store Connect
+        env:
+          CHAVE_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+        run: |
+          mkdir -p "$HOME/private_keys"
+          printf '%s\n' "$CHAVE_P8" > "$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8"
+          echo "APPLE_API_KEY_PATH=$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8" >> "$GITHUB_ENV"
+
+      - name: Gerar o projeto iOS
+        run: bun run tauri ios init
+
+      - name: Compilar o app
+        run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }}
+
+      - name: Guardar o arquivo .ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: atrios-ipa
+          path: src-tauri/gen/apple/build/**/*.ipa
+
+      - name: Enviar ao App Store Connect
+        run: |
+          IPA=$(find src-tauri/gen/apple/build -name "*.ipa" | head -n 1)
+          echo "Enviando $IPA"
+          xcrun altool --upload-app --type ios --file "$IPA" --apiKey "$APPLE_API_KEY" --apiIssuer "$APPLE_API_ISSUER"
