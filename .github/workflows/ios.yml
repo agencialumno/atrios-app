@@ -8,7 +8,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     env:
-      APPLE_DEVELOPMENT_TEAM: KH97Q8M556
+      APPLE_DEVELOPMENT_TEAM: SEU_TEAM_ID
       VITE_API_URL: https://victor.taile271e6.ts.net
       APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
       APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
@@ -60,6 +60,18 @@ jobs:
 
       - name: Gerar o projeto iOS
         run: bun run tauri ios init
+
+      - name: Usar os icones da Atrios no projeto iOS
+        run: |
+          DESTINO="src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset"
+          ls "$DESTINO"
+          cp src-tauri/icons/ios/*.png "$DESTINO/"
+          for f in "$DESTINO"/*.png; do
+            if sips -g hasAlpha "$f" | grep -q "yes"; then
+              echo "ERRO: o icone $f tem transparencia."
+              exit 1
+            fi
+          done
 
       - name: Compilar o app
         run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }}
