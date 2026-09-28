@@ -58,6 +58,15 @@ jobs:
           printf '%s\n' "$CHAVE_P8" > "$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8"
           echo "APPLE_API_KEY_PATH=$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8" >> "$GITHUB_ENV"
 
+      - name: Conferir as credenciais (sem mostrar segredos)
+        run: |
+          echo "Team ID: ${APPLE_DEVELOPMENT_TEAM} (${#APPLE_DEVELOPMENT_TEAM} caracteres, esperado 10)"
+          echo "Key ID: ${#APPLE_API_KEY} caracteres (esperado 10)"
+          echo "Issuer ID: ${#APPLE_API_ISSUER} caracteres (esperado 36)"
+          ls -l "$APPLE_API_KEY_PATH"
+          head -n 1 "$APPLE_API_KEY_PATH"
+          tail -n 1 "$APPLE_API_KEY_PATH"
+          wc -l "$APPLE_API_KEY_PATH"
       - name: Gerar o projeto iOS
         run: bun run tauri ios init
 
