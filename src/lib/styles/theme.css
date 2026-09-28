@@ -1,0 +1,51 @@
+:root {
+    /* Cores da marca Átrios */
+    --atrios-verde-escuro: #1f2a26;
+    --atrios-dourado: #c9a96b;
+    --atrios-creme: #f5f1ea;
+    --atrios-branco: #ffffff;
+
+    /* Semânticas */
+    --cor-fundo: var(--atrios-creme);
+    --cor-fundo-escuro: var(--atrios-verde-escuro);
+    --cor-destaque: var(--atrios-dourado);
+    --cor-texto: var(--atrios-verde-escuro);
+    --cor-texto-claro: var(--atrios-creme);
+    --cor-borda: #d8cfc0;
+
+    /* Tipografia */
+    --fonte-titulo: "Plus Jakarta Sans", system-ui, sans-serif;
+    --fonte-corpo: "Inter", system-ui, sans-serif;
+
+    /* Arredondamento */
+    --raio-sm: 10px;
+    --raio-md: 16px;
+    --raio-lg: 24px;
+    --raio-pill: 999px;
+
+    /* Layout */
+    --altura-nav: 72px;
+    /* Altura extra da barra de publicação (o layout define 64px enquanto ela aparece) */
+    --altura-publicacao: 0px;
+    /* Espaço ocupado embaixo: navegação + barra de publicação */
+    --altura-barra: calc(var(--altura-nav) + var(--altura-publicacao));
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--fonte-corpo);
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--fonte-titulo);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
