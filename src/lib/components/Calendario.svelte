@@ -10,6 +10,7 @@
     interface Bloqueio {
         data_inicio: string;
         data_fim: string;
+        origem?: string; // 'atrios_reserva' | 'airbnb' | 'booking'
     }
 
     let {
@@ -42,6 +43,39 @@
         }
         return conjunto;
     });
+
+    // Qual origem ocupa cada noite (para colorir e sinalizar de onde veio o bloqueio)
+    let origemPorDia = $derived.by(() => {
+        const mapa = new Map<string, string>();
+        for (const b of bloqueios) {
+            const origem = b.origem ?? "atrios_reserva";
+            let dia = b.data_inicio;
+            while (dia < b.data_fim) {
+                if (!mapa.has(dia)) mapa.set(dia, origem);
+                dia = somarDias(dia, 1);
+            }
+        }
+        return mapa;
+    });
+
+    // Quais origens aparecem neste conjunto de bloqueios (para montar a legenda só com o que existe)
+    let origensPresentes = $derived.by(() => {
+        const conjunto = new Set<string>();
+        for (const origem of origemPorDia.values()) conjunto.add(origem);
+        return conjunto;
+    });
+
+    function rotuloOrigem(origem: string): string {
+        if (origem === "airbnb") return "Airbnb";
+        if (origem === "booking") return "Booking";
+        return "Reserva Átrios";
+    }
+
+    function classeOrigem(origem: string | undefined): string {
+        if (origem === "airbnb") return "origem-airbnb";
+        if (origem === "booking") return "origem-booking";
+        return "origem-atrios";
+    }
 
     let tituloMes = $derived(
         new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
@@ -157,8 +191,14 @@
                     class:extremo={iso === checkin || iso === checkout}
                     class:periodo={noPeriodo(iso)}
                     class:hoje={iso === hoje}
+                    class={!clicavel(iso) && origemPorDia.has(iso)
+                        ? classeOrigem(origemPorDia.get(iso))
+                        : ""}
                     disabled={!clicavel(iso)}
                     onclick={() => selecionar(iso)}
+                    title={!clicavel(iso) && origemPorDia.has(iso)
+                        ? rotuloOrigem(origemPorDia.get(iso) ?? "")
+                        : undefined}
                 >
                     {Number(iso.slice(8))}
                 </button>
@@ -179,6 +219,17 @@
         <p class="dica">Agora toque no dia de saída.</p>
     {:else}
         <p class="dica">Toque no dia de entrada e depois no dia de saída.</p>
+    {/if}
+
+    {#if origensPresentes.size > 0}
+        <div class="legenda">
+            {#each [...origensPresentes] as origem (origem)}
+                <span class="legenda-item">
+                    <span class="legenda-bolinha {classeOrigem(origem)}"></span>
+                    {rotuloOrigem(origem)}
+                </span>
+            {/each}
+        </div>
     {/if}
 </div>
 
@@ -276,5 +327,68 @@
         font-size: 0.78rem;
         color: var(--cor-texto);
         opacity: 0.7;
+    }
+
+    .legenda {
+        display: none; /* só aparece no desktop, definido abaixo */
+    }
+
+    .legenda-bolinha {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+    }
+
+    /* ===== Desktop: cores por origem + legenda visível ===== */
+    @media (min-width: 960px) {
+        .dia.indisponivel {
+            opacity: 1;
+            text-decoration: none;
+            color: var(--atrios-branco);
+            font-weight: 600;
+        }
+
+        .dia.indisponivel.origem-atrios {
+            background-color: #8a8580;
+        }
+
+        .dia.indisponivel.origem-airbnb {
+            background-color: #c2483a;
+        }
+
+        .dia.indisponivel.origem-booking {
+            background-color: #1a3f73;
+        }
+
+        .legenda {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.9rem;
+            margin-top: 0.3rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid var(--cor-borda);
+        }
+
+        .legenda-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--cor-texto);
+            opacity: 0.75;
+        }
+
+        .legenda-bolinha.origem-atrios {
+            background-color: #8a8580;
+        }
+
+        .legenda-bolinha.origem-airbnb {
+            background-color: #c2483a;
+        }
+
+        .legenda-bolinha.origem-booking {
+            background-color: #1a3f73;
+        }
     }
 </style>

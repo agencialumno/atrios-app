@@ -21,6 +21,7 @@
     interface Bloqueio {
         data_inicio: string;
         data_fim: string;
+        origem?: string;
     }
 
     interface Reserva {
