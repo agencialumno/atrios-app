@@ -31,8 +31,6 @@
 
     const diasSemana = ["D", "S", "T", "Q", "Q", "S", "S"];
 
-    // A API pode devolver a data como timestamp completo ("2026-10-01T00:00:00.000Z")
-    // ou já como data pura ("2026-10-01"). Isto normaliza para os 10 primeiros caracteres.
     function soData(valor: string): string {
         return valor.slice(0, 10);
     }
@@ -164,8 +162,6 @@
         return !!checkin && !!checkout && iso > checkin && iso < checkout;
     }
 
-    // Uma única função monta a string de classes inteira, em vez de misturar
-    // "class:x" com "class={...}" no mesmo elemento (o compilador não aceita os dois juntos)
     function classesDia(iso: string): string {
         const partes = ["dia"];
         const bloqueado = !clicavel(iso);
@@ -360,16 +356,15 @@
         border-radius: 50%;
     }
 
+    /* ===== Desktop: só Airbnb/Booking (canais externos) ganham cor de alerta;
+       reserva própria da Átrios fica discreta, com a cara do fundo da página ===== */
     @media (min-width: 960px) {
-        .dia.indisponivel {
+        .dia.indisponivel.origem-airbnb,
+        .dia.indisponivel.origem-booking {
             opacity: 1;
             text-decoration: none;
             color: var(--atrios-branco);
             font-weight: 600;
-        }
-
-        .dia.indisponivel.origem-atrios {
-            background-color: #8a8580;
         }
 
         .dia.indisponivel.origem-airbnb {
@@ -378,6 +373,13 @@
 
         .dia.indisponivel.origem-booking {
             background-color: #1a3f73;
+        }
+
+        .dia.indisponivel.origem-atrios {
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            opacity: 0.4;
+            text-decoration: line-through;
         }
 
         .legenda {
@@ -398,16 +400,17 @@
             opacity: 0.75;
         }
 
-        .legenda-bolinha.origem-atrios {
-            background-color: #8a8580;
-        }
-
         .legenda-bolinha.origem-airbnb {
             background-color: #c2483a;
         }
 
         .legenda-bolinha.origem-booking {
             background-color: #1a3f73;
+        }
+
+        .legenda-bolinha.origem-atrios {
+            background-color: var(--cor-fundo);
+            border: 1px solid var(--cor-borda);
         }
     }
 </style>
