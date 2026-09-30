@@ -6,6 +6,7 @@
     import { abrirLinkExterno } from "$lib/externo";
     import { diferencaDias, formatarCurta, formatarReais } from "$lib/datas";
     import Preloader from "$lib/components/Preloader.svelte";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "../../../../lib/styles/theme.css";
 
     interface ReservaDetalhada {
@@ -85,17 +86,14 @@
     onMount(() => {
         carregar();
 
-        // Relógio da contagem regressiva
         const relogio = setInterval(() => {
             agora = Date.now();
         }, 1000);
 
-        // Enquanto aguarda o pagamento, confere a reserva de tempos em tempos
         const consulta = setInterval(() => {
             if (reserva?.status === "pendente") carregar(true);
         }, 3000);
 
-        // Ao voltar do navegador para o app, confere na hora
         const aoVoltar = () => {
             if (document.visibilityState === "visible") carregar(true);
         };
@@ -266,10 +264,6 @@
                 </div>
             </section>
 
-            {#if erroAcao}
-                <p class="erro">{erroAcao}</p>
-            {/if}
-
             <p class="nota">
                 O pagamento é feito em uma página segura do Stripe, que abre no
                 navegador. Depois de pagar, volte a esta página: a confirmação
@@ -358,6 +352,8 @@
     {/if}
 </main>
 
+<ModalErro mensagem={erroAcao} aoFechar={() => (erroAcao = "")} />
+
 <style>
     main {
         min-height: 100dvh;
@@ -410,17 +406,11 @@
         font-size: 1.05rem;
     }
 
-    .estado-erro,
-    .erro {
+    .estado-erro {
         margin: 0;
         padding: 1rem 1.25rem;
         font-size: 0.85rem;
         color: #b23a2f;
-    }
-
-    .erro {
-        padding: 0;
-        font-size: 0.82rem;
     }
 
     .conteudo {
@@ -508,7 +498,6 @@
         text-align: center;
     }
 
-    /* Rodapé com as ações, acima da barra de navegação */
     .rodape {
         position: fixed;
         left: 0;
@@ -602,7 +591,6 @@
         gap: 0.5rem;
     }
 
-    /* Telas de resultado */
     .centro {
         min-height: 80vh;
         display: flex;
@@ -667,7 +655,6 @@
         text-align: left;
     }
 
-    /* ===== Desktop: cartão central, sem rodapé fixo ===== */
     @media (min-width: 960px) {
         main {
             padding-bottom: 3rem;
