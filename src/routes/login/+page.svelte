@@ -33,9 +33,12 @@
 </script>
 
 <main>
-    <div class="topo"></div>
+    <div class="fundo">
+        <img src="/fundo-auth.jpg" alt="" />
+        <div class="fundo-degrade"></div>
+    </div>
 
-    <div class="folha">
+    <div class="cartao">
         <img src="/atrios-logo-horizontal.png" alt="Átrios" class="logo" />
 
         <h1>Bem-vindo de volta</h1>
@@ -86,25 +89,44 @@
 
 <style>
     main {
+        position: relative;
         min-height: 100dvh;
         display: flex;
-        flex-direction: column;
-        background-color: var(--cor-fundo);
+        align-items: flex-end;
+        justify-content: center;
         font-family: var(--fonte-corpo);
+        overflow: hidden;
     }
 
-    .topo {
-        height: 22vh;
-        background-image: url("/fundo-auth.jpg");
-        background-size: cover;
-        background-position: center;
+    .fundo {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
     }
 
-    .folha {
-        flex: 1;
+    .fundo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .fundo-degrade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to top,
+            rgba(31, 42, 38, 0.55) 0%,
+            rgba(31, 42, 38, 0.1) 45%,
+            transparent 70%
+        );
+    }
+
+    .cartao {
+        position: relative;
+        z-index: 1;
+        width: 100%;
         background-color: var(--atrios-branco);
         border-radius: var(--raio-lg) var(--raio-lg) 0 0;
-        margin-top: -28px;
         padding: 2rem 1.75rem 2rem;
         display: flex;
         flex-direction: column;
@@ -204,29 +226,23 @@
         text-decoration: none;
     }
 
-    /* ===== Desktop: cartão centralizado, fundo em split ===== */
+    /* ===== Desktop: cartão flutuando centralizado, imagem cobrindo a tela toda ===== */
     @media (min-width: 960px) {
         main {
-            flex-direction: row;
-            align-items: stretch;
+            align-items: center;
+            padding: 2rem;
         }
 
-        .topo {
-            flex: 1;
-            height: auto;
-        }
-
-        .folha {
-            flex: 0 0 440px;
-            margin-top: 0;
-            border-radius: 0;
-            padding: 3rem 3.5rem;
-            justify-content: center;
-            box-shadow: -8px 0 30px rgba(31, 42, 38, 0.06);
+        .cartao {
+            width: 100%;
+            max-width: 420px;
+            border-radius: var(--raio-lg);
+            padding: 3rem 3rem 2.5rem;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
         }
 
         .logo {
-            margin: 0 auto 2rem;
+            margin-bottom: 2rem;
         }
     }
 </style>

@@ -6,7 +6,7 @@
     interface Item {
         nome: string;
         icone: string;
-        rota: string | null; // null = tela ainda não existe
+        rota: string | null;
         ativoEm: string[];
     }
 
@@ -33,7 +33,7 @@
             nome: "Perfil",
             icone: icones.usuario,
             rota: "/perfil",
-            ativoEm: ["/perfil", "/anfitriao", "/equipe"],
+            ativoEm: ["/perfil"],
         },
     ];
 
@@ -133,5 +133,12 @@
 
     .item.ativo .rotulo {
         font-weight: 700;
+    }
+
+    /* No desktop, a navegação vira a barra superior (BarraNavegacaoDesktop) */
+    @media (min-width: 960px) {
+        .barra {
+            display: none;
+        }
     }
 </style>
