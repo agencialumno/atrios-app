@@ -504,24 +504,23 @@
         header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 2rem;
             margin-bottom: 2rem;
         }
 
-        .logo {
-            margin-bottom: 0;
-            width: 140px;
+        /* A logo e o avatar já aparecem na barra superior fixa; some daqui pra não duplicar */
+        .logo,
+        .avatar {
+            display: none;
         }
 
         .linha-saudacao {
             flex: 1;
-            justify-content: flex-end;
-            gap: 2rem;
+            justify-content: flex-start;
+            gap: 1rem;
         }
 
         .saudacao {
-            text-align: right;
+            text-align: left;
         }
 
         .linha-busca {

@@ -100,11 +100,11 @@
         align-items: center;
         justify-content: space-between;
         gap: 2rem;
-        padding: 0.8rem 2.5rem;
+        padding: 0.5rem 2.5rem;
     }
 
     .logo img {
-        height: 40px;
+        height: 56px;
         width: auto;
         display: block;
     }

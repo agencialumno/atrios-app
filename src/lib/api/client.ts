@@ -50,8 +50,16 @@ export async function api<T>(
   }
 
   if (!resposta.ok) {
-    const texto = await resposta.text();
-    throw new Error(texto || `Erro ${resposta.status}`);
+    let mensagem = `Não foi possível concluir (erro ${resposta.status}).`;
+    try {
+      const corpo = await resposta.json();
+      if (corpo && typeof corpo.message === "string" && corpo.message.trim()) {
+        mensagem = corpo.message;
+      }
+    } catch {
+      // resposta não era JSON: mantém a mensagem genérica
+    }
+    throw new Error(mensagem);
   }
 
   return resposta.json();

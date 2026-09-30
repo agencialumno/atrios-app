@@ -7,6 +7,7 @@
     import { diferencaDias, formatarCurta, formatarReais } from "$lib/datas";
     import Calendario from "$lib/components/Calendario.svelte";
     import Preloader from "$lib/components/Preloader.svelte";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "../../../../lib/styles/theme.css";
 
     interface Imovel {
@@ -96,7 +97,6 @@
                 },
             });
 
-            // Com pagamento online: abre a página do Stripe e acompanha a confirmação
             if (resposta.checkout_url) {
                 await abrirLinkExterno(resposta.checkout_url);
                 goto(`/reservas/${resposta.id}/pagamento`);
@@ -109,7 +109,6 @@
                 e instanceof Error
                     ? e.message
                     : "Não foi possível concluir a reserva";
-            // Se alguém reservou antes, atualiza o calendário e limpa a seleção
             if (erroReserva.includes("indisponível")) {
                 await carregarCalendario().catch(() => {});
                 checkin = null;
@@ -237,10 +236,6 @@
                     </div>
                 </div>
             {/if}
-
-            {#if erroReserva}
-                <p class="erro">{erroReserva}</p>
-            {/if}
         </div>
 
         <div class="rodape-fixo">
@@ -264,6 +259,8 @@
         </div>
     {/if}
 </main>
+
+<ModalErro mensagem={erroReserva} aoFechar={() => (erroReserva = "")} />
 
 <style>
     main {
@@ -323,8 +320,7 @@
         color: var(--cor-texto);
     }
 
-    .estado.erro,
-    .erro {
+    .estado.erro {
         color: #b23a2f;
         font-size: 0.82rem;
         margin: 0;
@@ -580,7 +576,6 @@
         font-weight: 500;
     }
 
-    /* ===== Desktop: duas colunas, calendário à esquerda, resumo fixo à direita ===== */
     @media (min-width: 960px) {
         main {
             padding-bottom: 3rem;
@@ -604,8 +599,7 @@
         }
 
         .linha-hospedes,
-        .resumo-valores,
-        .erro {
+        .resumo-valores {
             grid-column: 2;
         }
 
