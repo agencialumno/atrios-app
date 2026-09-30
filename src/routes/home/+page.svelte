@@ -149,7 +149,12 @@
                 <p>Carregando imóveis...</p>
             </div>
         {:else if erro}
-            <p class="estado erro">{erro}</p>
+            <div class="estado-erro-wrapper">
+                <p class="estado erro">{erro}</p>
+                <button class="botao-tentar" onclick={carregar}
+                    >Tentar de novo</button
+                >
+            </div>
         {:else if imoveisFiltrados.length === 0}
             <p class="estado">
                 {categoriaSelecionada
@@ -546,5 +551,25 @@
         .lista-cards {
             grid-template-columns: repeat(4, 1fr);
         }
+    }
+
+    .estado-erro-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 2rem 1rem;
+    }
+
+    .botao-tentar {
+        padding: 0.6rem 1.4rem;
+        border: none;
+        border-radius: var(--raio-pill);
+        background-color: var(--atrios-dourado);
+        color: var(--atrios-verde-escuro);
+        font-family: var(--fonte-corpo);
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
     }
 </style>
