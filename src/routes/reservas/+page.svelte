@@ -9,6 +9,7 @@
         hojeISO,
     } from "$lib/datas";
     import Preloader from "$lib/components/Preloader.svelte";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "../../lib/styles/theme.css";
 
     interface ReservaDetalhada {
@@ -299,10 +300,6 @@
                 {/if}
             </p>
 
-            {#if erroCancelamento}
-                <p class="erro">{erroCancelamento}</p>
-            {/if}
-
             <button
                 class="botao-principal"
                 onclick={fecharConfirmacao}
@@ -320,6 +317,11 @@
         </div>
     </div>
 {/if}
+
+<ModalErro
+    mensagem={erroCancelamento}
+    aoFechar={() => (erroCancelamento = "")}
+/>
 
 <style>
     main {
@@ -382,8 +384,7 @@
         color: var(--cor-texto);
     }
 
-    .estado.erro,
-    .erro {
+    .estado.erro {
         color: #b23a2f;
         font-size: 0.82rem;
         margin: 0;
@@ -638,11 +639,6 @@
         opacity: 0.75;
     }
 
-    .folha .erro {
-        opacity: 1;
-        margin: 0;
-    }
-
     .confirmar-cancelamento {
         padding: 0.85rem;
         border: none;
@@ -659,7 +655,6 @@
         cursor: not-allowed;
     }
 
-    /* ===== Desktop: centralizado, cards em grade, folha de confirmação vira modal central ===== */
     @media (min-width: 960px) {
         main {
             max-width: 900px;

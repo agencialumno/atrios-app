@@ -2,6 +2,7 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api/client";
     import { auth } from "$lib/stores/auth";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "../../lib/styles/theme.css";
 
     let nome = $state("");
@@ -94,10 +95,6 @@
                 />
             </label>
 
-            {#if erro}
-                <p class="erro">{erro}</p>
-            {/if}
-
             <button type="submit" disabled={carregando}>
                 {carregando ? "Criando conta..." : "Criar conta"}
             </button>
@@ -108,6 +105,8 @@
         </p>
     </div>
 </main>
+
+<ModalErro mensagem={erro} aoFechar={() => (erro = "")} />
 
 <style>
     main {
@@ -203,12 +202,6 @@
         cursor: not-allowed;
     }
 
-    .erro {
-        color: #b23a2f;
-        font-size: 0.78rem;
-        margin: 0;
-    }
-
     .link-login {
         text-align: center;
         font-size: 0.78rem;
@@ -222,7 +215,6 @@
         text-decoration: none;
     }
 
-    /* ===== Desktop: cartão centralizado, sem esticar a largura toda ===== */
     @media (min-width: 960px) {
         main {
             align-items: center;

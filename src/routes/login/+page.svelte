@@ -2,6 +2,7 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api/client";
     import { auth } from "$lib/stores/auth";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "../../lib/styles/theme.css";
 
     let email = $state("");
@@ -72,10 +73,6 @@
 
             <a href="/esqueci-senha" class="esqueci">Esqueceu a senha?</a>
 
-            {#if erro}
-                <p class="erro">{erro}</p>
-            {/if}
-
             <button type="submit" disabled={carregando}>
                 {carregando ? "Entrando..." : "Entrar"}
             </button>
@@ -86,6 +83,8 @@
         </p>
     </div>
 </main>
+
+<ModalErro mensagem={erro} aoFechar={() => (erro = "")} />
 
 <style>
     main {
@@ -207,12 +206,6 @@
         cursor: not-allowed;
     }
 
-    .erro {
-        color: #b23a2f;
-        font-size: 0.78rem;
-        margin: 0;
-    }
-
     .link-cadastro {
         text-align: center;
         font-size: 0.78rem;
@@ -226,7 +219,6 @@
         text-decoration: none;
     }
 
-    /* ===== Desktop: cartão flutuando centralizado, imagem cobrindo a tela toda ===== */
     @media (min-width: 960px) {
         main {
             align-items: center;
