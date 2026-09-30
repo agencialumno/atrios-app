@@ -3,6 +3,10 @@
     {
       "path": "/cron/expirar-pendentes",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/cron/sincronizar-ical",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
