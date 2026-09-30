@@ -31,12 +31,20 @@
 
     const diasSemana = ["D", "S", "T", "Q", "Q", "S", "S"];
 
+    // A API pode devolver a data como timestamp completo ("2026-10-01T00:00:00.000Z")
+    // ou já como data pura ("2026-10-01"). Isto normaliza para os 10 primeiros caracteres,
+    // que é o formato que o resto do componente usa para comparar (YYYY-MM-DD).
+    function soData(valor: string): string {
+        return valor.slice(0, 10);
+    }
+
     // Todas as noites ocupadas (o dia de saída de uma reserva NÃO conta como ocupado)
     let noitesOcupadas = $derived.by(() => {
         const conjunto = new Set<string>();
         for (const b of bloqueios) {
-            let dia = b.data_inicio;
-            while (dia < b.data_fim) {
+            const fim = soData(b.data_fim);
+            let dia = soData(b.data_inicio);
+            while (dia < fim) {
                 conjunto.add(dia);
                 dia = somarDias(dia, 1);
             }
@@ -49,8 +57,9 @@
         const mapa = new Map<string, string>();
         for (const b of bloqueios) {
             const origem = b.origem ?? "atrios_reserva";
-            let dia = b.data_inicio;
-            while (dia < b.data_fim) {
+            const fim = soData(b.data_fim);
+            let dia = soData(b.data_inicio);
+            while (dia < fim) {
                 if (!mapa.has(dia)) mapa.set(dia, origem);
                 dia = somarDias(dia, 1);
             }
@@ -330,7 +339,7 @@
     }
 
     .legenda {
-        display: none; /* só aparece no desktop, definido abaixo */
+        display: none;
     }
 
     .legenda-bolinha {
@@ -340,7 +349,6 @@
         border-radius: 50%;
     }
 
-    /* ===== Desktop: cores por origem + legenda visível ===== */
     @media (min-width: 960px) {
         .dia.indisponivel {
             opacity: 1;
