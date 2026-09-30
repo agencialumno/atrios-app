@@ -32,13 +32,11 @@
     const diasSemana = ["D", "S", "T", "Q", "Q", "S", "S"];
 
     // A API pode devolver a data como timestamp completo ("2026-10-01T00:00:00.000Z")
-    // ou já como data pura ("2026-10-01"). Isto normaliza para os 10 primeiros caracteres,
-    // que é o formato que o resto do componente usa para comparar (YYYY-MM-DD).
+    // ou já como data pura ("2026-10-01"). Isto normaliza para os 10 primeiros caracteres.
     function soData(valor: string): string {
         return valor.slice(0, 10);
     }
 
-    // Todas as noites ocupadas (o dia de saída de uma reserva NÃO conta como ocupado)
     let noitesOcupadas = $derived.by(() => {
         const conjunto = new Set<string>();
         for (const b of bloqueios) {
@@ -52,7 +50,6 @@
         return conjunto;
     });
 
-    // Qual origem ocupa cada noite (para colorir e sinalizar de onde veio o bloqueio)
     let origemPorDia = $derived.by(() => {
         const mapa = new Map<string, string>();
         for (const b of bloqueios) {
@@ -67,7 +64,6 @@
         return mapa;
     });
 
-    // Quais origens aparecem neste conjunto de bloqueios (para montar a legenda só com o que existe)
     let origensPresentes = $derived.by(() => {
         const conjunto = new Set<string>();
         for (const origem of origemPorDia.values()) conjunto.add(origem);
@@ -167,6 +163,30 @@
     function noPeriodo(iso: string): boolean {
         return !!checkin && !!checkout && iso > checkin && iso < checkout;
     }
+
+    // Uma única função monta a string de classes inteira, em vez de misturar
+    // "class:x" com "class={...}" no mesmo elemento (o compilador não aceita os dois juntos)
+    function classesDia(iso: string): string {
+        const partes = ["dia"];
+        const bloqueado = !clicavel(iso);
+
+        if (bloqueado) partes.push("indisponivel");
+        if (iso === checkin || iso === checkout) partes.push("extremo");
+        if (noPeriodo(iso)) partes.push("periodo");
+        if (iso === hoje) partes.push("hoje");
+        if (bloqueado && origemPorDia.has(iso)) {
+            partes.push(classeOrigem(origemPorDia.get(iso)));
+        }
+
+        return partes.join(" ");
+    }
+
+    function tituloDia(iso: string): string | undefined {
+        if (!clicavel(iso) && origemPorDia.has(iso)) {
+            return rotuloOrigem(origemPorDia.get(iso) ?? "");
+        }
+        return undefined;
+    }
 </script>
 
 <div class="calendario">
@@ -195,19 +215,10 @@
         {#each celulas as iso, i (i)}
             {#if iso}
                 <button
-                    class="dia"
-                    class:indisponivel={!clicavel(iso)}
-                    class:extremo={iso === checkin || iso === checkout}
-                    class:periodo={noPeriodo(iso)}
-                    class:hoje={iso === hoje}
-                    class={!clicavel(iso) && origemPorDia.has(iso)
-                        ? classeOrigem(origemPorDia.get(iso))
-                        : ""}
+                    class={classesDia(iso)}
                     disabled={!clicavel(iso)}
                     onclick={() => selecionar(iso)}
-                    title={!clicavel(iso) && origemPorDia.has(iso)
-                        ? rotuloOrigem(origemPorDia.get(iso) ?? "")
-                        : undefined}
+                    title={tituloDia(iso)}
                 >
                     {Number(iso.slice(8))}
                 </button>
