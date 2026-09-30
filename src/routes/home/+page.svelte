@@ -99,7 +99,10 @@
             </div>
 
             <div class="acoes">
-                <button class="botao-icone" aria-label="Notificações">
+                <button
+                    class="botao-icone botao-sino"
+                    aria-label="Notificações"
+                >
                     <span class="icone">{@html icones.sino}</span>
                 </button>
                 <button
@@ -495,7 +498,7 @@
     /* ===== Desktop ===== */
     @media (min-width: 960px) {
         main {
-            max-width: 1080px;
+            max-width: 1280px;
             margin: 0 auto;
             padding-left: 2.5rem;
             padding-right: 2.5rem;
@@ -543,6 +546,9 @@
         .card:hover {
             transform: translateY(-3px);
             transition: transform 0.2s;
+        }
+        .botao-sino {
+            display: none;
         }
     }
 
