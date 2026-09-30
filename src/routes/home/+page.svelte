@@ -486,4 +486,65 @@
         color: var(--cor-texto);
         opacity: 0.6;
     }
+
+    /* ===== Desktop ===== */
+    @media (min-width: 960px) {
+        main {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            margin-bottom: 0;
+            width: 140px;
+        }
+
+        .linha-saudacao {
+            flex: 1;
+            justify-content: flex-end;
+            gap: 2rem;
+        }
+
+        .saudacao {
+            text-align: right;
+        }
+
+        .linha-busca {
+            max-width: 640px;
+        }
+
+        .categorias {
+            margin: 0 0 1.5rem;
+            padding: 0.25rem 0 1rem;
+            overflow-x: visible;
+            flex-wrap: wrap;
+        }
+
+        .lista-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            transition: transform 0.2s;
+        }
+    }
+
+    @media (min-width: 1280px) {
+        .lista-cards {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
 </style>

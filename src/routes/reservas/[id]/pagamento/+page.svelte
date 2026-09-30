@@ -272,8 +272,8 @@
 
             <p class="nota">
                 O pagamento é feito em uma página segura do Stripe, que abre no
-                navegador do celular. Depois de pagar, volte ao app: a
-                confirmação aparece sozinha.
+                navegador. Depois de pagar, volte a esta página: a confirmação
+                aparece sozinha.
             </p>
         </div>
 
@@ -665,5 +665,26 @@
         border-radius: var(--raio-md);
         box-shadow: 0 4px 16px rgba(31, 42, 38, 0.08);
         text-align: left;
+    }
+
+    /* ===== Desktop: cartão central, sem rodapé fixo ===== */
+    @media (min-width: 960px) {
+        main {
+            padding-bottom: 3rem;
+        }
+
+        .topo,
+        .conteudo {
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .rodape {
+            position: static;
+            max-width: 560px;
+            margin: 0 auto;
+            border-radius: var(--raio-lg);
+            box-shadow: 0 4px 16px rgba(31, 42, 38, 0.08);
+        }
     }
 </style>

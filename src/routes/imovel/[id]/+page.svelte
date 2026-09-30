@@ -110,98 +110,135 @@
     {:else if erro}
         <p class="estado erro">{erro}</p>
     {:else if imovel}
-        <div class="galeria">
-            <a href="/home" class="voltar">←</a>
-            <Galeria
-                {fotos}
-                nome={imovel.nome}
-                video={imovel.video_tour}
-                info={{
-                    cidade: imovel.cidade,
-                    preco: imovel.preco_base_noite,
-                    hospedes: imovel.capacidade_hospedes,
-                    quartos: imovel.quartos,
-                    banheiros: imovel.banheiros,
-                }}
-                bind:tourAberto
-                aoReservar={irParaReserva}
-            />
-        </div>
-
-        <div class="conteudo">
-            <h1>{imovel.nome}</h1>
-            <p class="localizacao">{imovel.cidade} — {imovel.endereco}</p>
-
-            <div class="specs">
-                <div class="spec">
-                    <span class="spec-icone">{@html icones.hospedes}</span>
-                    <span class="spec-numero">{imovel.capacidade_hospedes}</span
-                    >
-                    <span class="spec-label">
-                        {imovel.capacidade_hospedes === 1
-                            ? "Hóspede"
-                            : "Hóspedes"}
-                    </span>
-                </div>
-                <div class="spec">
-                    <span class="spec-icone">{@html icones.quarto}</span>
-                    <span class="spec-numero">{imovel.quartos}</span>
-                    <span class="spec-label"
-                        >{imovel.quartos === 1 ? "Quarto" : "Quartos"}</span
-                    >
-                </div>
-                <div class="spec">
-                    <span class="spec-icone">{@html icones.banheiro}</span>
-                    <span class="spec-numero">{imovel.banheiros}</span>
-                    <span class="spec-label">
-                        {imovel.banheiros === 1 ? "Banheiro" : "Banheiros"}
-                    </span>
+        <div class="grade-desktop">
+            <div class="coluna-galeria">
+                <div class="galeria">
+                    <a href="/home" class="voltar">←</a>
+                    <Galeria
+                        {fotos}
+                        nome={imovel.nome}
+                        video={imovel.video_tour}
+                        info={{
+                            cidade: imovel.cidade,
+                            preco: imovel.preco_base_noite,
+                            hospedes: imovel.capacidade_hospedes,
+                            quartos: imovel.quartos,
+                            banheiros: imovel.banheiros,
+                        }}
+                        bind:tourAberto
+                        aoReservar={irParaReserva}
+                    />
                 </div>
             </div>
 
-            {#if imovel.descricao}
-                <section>
-                    <h2>Sobre o imóvel</h2>
-                    <p class="descricao">{imovel.descricao}</p>
-                </section>
-            {/if}
+            <div class="coluna-conteudo">
+                <div class="conteudo">
+                    <h1>{imovel.nome}</h1>
+                    <p class="localizacao">
+                        {imovel.cidade} — {imovel.endereco}
+                    </p>
 
-            {#if temAreaComum}
-                <button class="area-comum" onclick={() => (areaAberta = true)}>
-                    {#if areaFotos.length > 0}
-                        <img class="area-capa" src={areaFotos[0]} alt="" />
-                    {:else}
-                        <span class="area-capa area-capa-icone"
-                            >{@html icones.piscina}</span
-                        >
+                    <div class="specs">
+                        <div class="spec">
+                            <span class="spec-icone"
+                                >{@html icones.hospedes}</span
+                            >
+                            <span class="spec-numero"
+                                >{imovel.capacidade_hospedes}</span
+                            >
+                            <span class="spec-label">
+                                {imovel.capacidade_hospedes === 1
+                                    ? "Hóspede"
+                                    : "Hóspedes"}
+                            </span>
+                        </div>
+                        <div class="spec">
+                            <span class="spec-icone">{@html icones.quarto}</span
+                            >
+                            <span class="spec-numero">{imovel.quartos}</span>
+                            <span class="spec-label"
+                                >{imovel.quartos === 1
+                                    ? "Quarto"
+                                    : "Quartos"}</span
+                            >
+                        </div>
+                        <div class="spec">
+                            <span class="spec-icone"
+                                >{@html icones.banheiro}</span
+                            >
+                            <span class="spec-numero">{imovel.banheiros}</span>
+                            <span class="spec-label">
+                                {imovel.banheiros === 1
+                                    ? "Banheiro"
+                                    : "Banheiros"}
+                            </span>
+                        </div>
+                    </div>
+
+                    {#if imovel.descricao}
+                        <section>
+                            <h2>Sobre o imóvel</h2>
+                            <p class="descricao">{imovel.descricao}</p>
+                        </section>
                     {/if}
 
-                    <span class="area-textos">
-                        <span class="area-titulo"
-                            >Veja como é a área comum do condomínio</span
+                    {#if temAreaComum}
+                        <button
+                            class="area-comum"
+                            onclick={() => (areaAberta = true)}
                         >
-                        <span class="area-sub">{textoArea}</span>
-                    </span>
-
-                    <span class="area-seta" aria-hidden="true">›</span>
-                </button>
-            {/if}
-
-            {#if itensComodidades.length > 0}
-                <section>
-                    <h2>O que este lugar oferece</h2>
-                    <div class="comodidades">
-                        {#each itensComodidades as item (item.nome)}
-                            <div class="comodidade">
-                                <span class="comodidade-icone"
-                                    >{@html item.icone}</span
+                            {#if areaFotos.length > 0}
+                                <img
+                                    class="area-capa"
+                                    src={areaFotos[0]}
+                                    alt=""
+                                />
+                            {:else}
+                                <span class="area-capa area-capa-icone"
+                                    >{@html icones.piscina}</span
                                 >
-                                <span class="comodidade-nome">{item.nome}</span>
+                            {/if}
+
+                            <span class="area-textos">
+                                <span class="area-titulo"
+                                    >Veja como é a área comum do condomínio</span
+                                >
+                                <span class="area-sub">{textoArea}</span>
+                            </span>
+
+                            <span class="area-seta" aria-hidden="true">›</span>
+                        </button>
+                    {/if}
+
+                    {#if itensComodidades.length > 0}
+                        <section>
+                            <h2>O que este lugar oferece</h2>
+                            <div class="comodidades">
+                                {#each itensComodidades as item (item.nome)}
+                                    <div class="comodidade">
+                                        <span class="comodidade-icone"
+                                            >{@html item.icone}</span
+                                        >
+                                        <span class="comodidade-nome"
+                                            >{item.nome}</span
+                                        >
+                                    </div>
+                                {/each}
                             </div>
-                        {/each}
-                    </div>
-                </section>
-            {/if}
+                        </section>
+                    {/if}
+                </div>
+
+                <div class="reserva-desktop">
+                    <p class="reserva-preco">
+                        R$ {imovel.preco_base_noite.toFixed(0)}
+                        <span>/noite</span>
+                    </p>
+                    <button class="reserva-botao" onclick={irParaReserva}
+                        >Reservar</button
+                    >
+                </div>
+            </div>
         </div>
 
         <div class="rodape-conjunto">
@@ -713,6 +750,104 @@
                 inset 0 0 0 1.5px rgba(255, 255, 255, 0.6),
                 0 0 12px 2px rgba(201, 169, 107, 0.6),
                 0 0 26px 6px rgba(201, 169, 107, 0.35);
+        }
+    }
+
+    /* ===== Desktop: layout de duas colunas, sem rodapé/badge de tour flutuante ===== */
+    .grade-desktop {
+        display: contents;
+    }
+
+    .reserva-desktop {
+        display: none;
+    }
+
+    @media (min-width: 960px) {
+        main {
+            padding-bottom: 3rem;
+        }
+
+        main.com-tour {
+            padding-bottom: 3rem;
+        }
+
+        .grade-desktop {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2.5rem 0;
+            align-items: start;
+        }
+
+        .coluna-galeria .galeria {
+            border-radius: var(--raio-lg);
+            overflow: hidden;
+        }
+
+        .voltar {
+            top: 1.25rem;
+            left: 1.25rem;
+        }
+
+        .coluna-conteudo {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .conteudo {
+            margin-top: 0;
+            padding: 0;
+            border-radius: 0;
+            background: none;
+        }
+
+        .reserva-desktop {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            position: sticky;
+            top: 100px;
+            padding: 1.3rem 1.5rem;
+            background-color: var(--atrios-branco);
+            border-radius: var(--raio-lg);
+            box-shadow: 0 10px 30px rgba(31, 42, 38, 0.1);
+        }
+
+        .reserva-preco {
+            margin: 0;
+            font-family: var(--fonte-titulo);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--cor-texto);
+        }
+
+        .reserva-preco span {
+            font-family: var(--fonte-corpo);
+            font-weight: 400;
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+
+        .reserva-botao {
+            padding: 0.85rem 2rem;
+            border: none;
+            border-radius: var(--raio-pill);
+            background-color: var(--atrios-dourado);
+            color: var(--atrios-verde-escuro);
+            font-family: var(--fonte-corpo);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* No desktop, o rodapé flutuante e o badge de tour saem daqui:
+           o preço/reservar já está fixo na coluna da direita */
+        .rodape-conjunto {
+            display: none;
         }
     }
 </style>

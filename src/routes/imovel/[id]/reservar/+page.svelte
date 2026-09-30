@@ -579,4 +579,44 @@
         color: var(--cor-texto);
         font-weight: 500;
     }
+
+    /* ===== Desktop: duas colunas, calendário à esquerda, resumo fixo à direita ===== */
+    @media (min-width: 960px) {
+        main {
+            padding-bottom: 3rem;
+        }
+
+        .topo,
+        .conteudo {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .conteudo {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .identificacao {
+            grid-column: 1 / -1;
+        }
+
+        .linha-hospedes,
+        .resumo-valores,
+        .erro {
+            grid-column: 2;
+        }
+
+        .cartao:has(> :global(.calendario)) {
+            grid-row: 2 / span 3;
+        }
+
+        .rodape-fixo {
+            position: static;
+            max-width: 1100px;
+            margin: 1.5rem auto 0;
+        }
+    }
 </style>

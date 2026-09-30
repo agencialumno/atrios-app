@@ -41,70 +41,72 @@
 </script>
 
 <main>
-    <a href="/login" class="voltar">←</a>
+    <div class="cartao">
+        <a href="/login" class="voltar">←</a>
 
-    <img src="/atrios-logo-horizontal.png" alt="Átrios" class="logo" />
+        <img src="/atrios-logo-horizontal.png" alt="Átrios" class="logo" />
 
-    <h1>Criar conta</h1>
-    <p class="subtitulo">Comece sua experiência com a Átrios</p>
+        <h1>Criar conta</h1>
+        <p class="subtitulo">Comece sua experiência com a Átrios</p>
 
-    <form
-        onsubmit={(e) => {
-            e.preventDefault();
-            cadastrar();
-        }}
-    >
-        <label>
-            Nome completo
-            <input
-                type="text"
-                bind:value={nome}
-                required
-                placeholder="Seu nome"
-            />
-        </label>
+        <form
+            onsubmit={(e) => {
+                e.preventDefault();
+                cadastrar();
+            }}
+        >
+            <label>
+                Nome completo
+                <input
+                    type="text"
+                    bind:value={nome}
+                    required
+                    placeholder="Seu nome"
+                />
+            </label>
 
-        <label>
-            E-mail
-            <input
-                type="email"
-                bind:value={email}
-                required
-                placeholder="seu@email.com"
-            />
-        </label>
+            <label>
+                E-mail
+                <input
+                    type="email"
+                    bind:value={email}
+                    required
+                    placeholder="seu@email.com"
+                />
+            </label>
 
-        <label>
-            Telefone (opcional)
-            <input
-                type="tel"
-                bind:value={telefone}
-                placeholder="(21) 99999-9999"
-            />
-        </label>
+            <label>
+                Telefone (opcional)
+                <input
+                    type="tel"
+                    bind:value={telefone}
+                    placeholder="(21) 99999-9999"
+                />
+            </label>
 
-        <label>
-            Senha
-            <input
-                type="password"
-                bind:value={senha}
-                required
-                placeholder="••••••••"
-            />
-        </label>
+            <label>
+                Senha
+                <input
+                    type="password"
+                    bind:value={senha}
+                    required
+                    placeholder="••••••••"
+                />
+            </label>
 
-        {#if erro}
-            <p class="erro">{erro}</p>
-        {/if}
+            {#if erro}
+                <p class="erro">{erro}</p>
+            {/if}
 
-        <button type="submit" disabled={carregando}>
-            {carregando ? "Criando conta..." : "Criar conta"}
-        </button>
-    </form>
+            <button type="submit" disabled={carregando}>
+                {carregando ? "Criando conta..." : "Criar conta"}
+            </button>
+        </form>
 
-    <p class="link-login">
-        Já tem conta? <a href="/login">Entrar</a>
-    </p>
+        <p class="link-login">
+            Já tem conta? <a href="/login">Entrar</a>
+        </p>
+    </div>
 </main>
 
 <style>
@@ -115,6 +117,10 @@
         display: flex;
         flex-direction: column;
         font-family: var(--fonte-corpo);
+    }
+
+    .cartao {
+        display: contents;
     }
 
     .voltar {
@@ -214,5 +220,25 @@
         color: var(--atrios-dourado);
         font-weight: 600;
         text-decoration: none;
+    }
+
+    /* ===== Desktop: cartão centralizado, sem esticar a largura toda ===== */
+    @media (min-width: 960px) {
+        main {
+            align-items: center;
+            justify-content: center;
+            background-color: var(--cor-fundo);
+        }
+
+        .cartao {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 420px;
+            padding: 3rem 3rem 2.5rem;
+            background-color: var(--atrios-branco);
+            border-radius: var(--raio-lg);
+            box-shadow: 0 20px 50px rgba(31, 42, 38, 0.12);
+        }
     }
 </style>

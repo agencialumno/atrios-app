@@ -80,4 +80,39 @@
         text-decoration: underline;
         font-size: 0.9rem;
     }
+
+    /* ===== Desktop: conteúdo centralizado, mais respiro, botões lado a lado ===== */
+    @media (min-width: 960px) {
+        main {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .conteudo {
+            max-width: 560px;
+            padding: 3.5rem;
+            border-radius: var(--raio-lg);
+            background: rgba(31, 42, 38, 0.72);
+            gap: 2.5rem;
+            text-align: center;
+        }
+
+        .texto h1 {
+            font-size: 2.4rem;
+        }
+
+        .texto p {
+            font-size: 1.05rem;
+        }
+
+        .acoes {
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .botao-principal {
+            padding: 0.9rem 2.2rem;
+        }
+    }
 </style>

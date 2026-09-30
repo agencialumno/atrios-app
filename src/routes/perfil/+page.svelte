@@ -23,54 +23,61 @@
         <p class="email">{email}</p>
     </header>
 
-    {#if ehEquipe}
+    <div class="cartoes">
+        {#if ehEquipe}
+            <section class="cartao">
+                <h2>Painel da equipe</h2>
+                <p>
+                    Chegadas e saídas do dia, limpezas, ocorrências e o
+                    calendário de todos os imóveis.
+                </p>
+                <button class="botao-principal" onclick={() => goto("/equipe")}>
+                    Abrir painel da equipe
+                </button>
+            </section>
+        {/if}
+
+        {#if vePainel}
+            <section class="cartao">
+                <h2>Painel do anfitrião</h2>
+                <p>
+                    Acompanhe reservas, ocupação e o extrato do que você recebe.
+                </p>
+                <button
+                    class="botao-principal"
+                    onclick={() => goto("/anfitriao")}
+                >
+                    Abrir painel
+                </button>
+            </section>
+
+            <section class="cartao">
+                <h2>Calendários</h2>
+                <p>
+                    Conecte o Airbnb e o Booking para bloquear as datas entre os
+                    canais e evitar reservas duplicadas.
+                </p>
+                <button
+                    class="botao-principal"
+                    onclick={() => goto("/anfitriao/calendarios")}
+                >
+                    Gerenciar calendários
+                </button>
+            </section>
+        {/if}
+
         <section class="cartao">
-            <h2>Painel da equipe</h2>
+            <h2>{jaAnfitriao ? "Novo anúncio" : "Seja anfitrião"}</h2>
             <p>
-                Chegadas e saídas do dia, limpezas, ocorrências e o calendário
-                de todos os imóveis.
+                {jaAnfitriao
+                    ? "Cadastre mais um imóvel e deixe a Átrios cuidar dos hóspedes."
+                    : "Anuncie seu imóvel e deixe a Átrios cuidar de tudo, como uma coanfitriã de verdade."}
             </p>
-            <button class="botao-principal" onclick={() => goto("/equipe")}>
-                Abrir painel da equipe
+            <button class="botao-principal" onclick={() => goto("/anunciar")}>
+                Criar anúncio
             </button>
         </section>
-    {/if}
-
-    {#if vePainel}
-        <section class="cartao">
-            <h2>Painel do anfitrião</h2>
-            <p>Acompanhe reservas, ocupação e o extrato do que você recebe.</p>
-            <button class="botao-principal" onclick={() => goto("/anfitriao")}>
-                Abrir painel
-            </button>
-        </section>
-
-        <section class="cartao">
-            <h2>Calendários</h2>
-            <p>
-                Conecte o Airbnb e o Booking para bloquear as datas entre os
-                canais e evitar reservas duplicadas.
-            </p>
-            <button
-                class="botao-principal"
-                onclick={() => goto("/anfitriao/calendarios")}
-            >
-                Gerenciar calendários
-            </button>
-        </section>
-    {/if}
-
-    <section class="cartao">
-        <h2>{jaAnfitriao ? "Novo anúncio" : "Seja anfitrião"}</h2>
-        <p>
-            {jaAnfitriao
-                ? "Cadastre mais um imóvel e deixe a Átrios cuidar dos hóspedes."
-                : "Anuncie seu imóvel e deixe a Átrios cuidar de tudo, como uma coanfitriã de verdade."}
-        </p>
-        <button class="botao-principal" onclick={() => goto("/anunciar")}>
-            Criar anúncio
-        </button>
-    </section>
+    </div>
 
     <button class="botao-sair" onclick={sair}>Sair da conta</button>
 </main>
@@ -124,6 +131,12 @@
         opacity: 0.65;
     }
 
+    .cartoes {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
     .cartao {
         background-color: var(--atrios-branco);
         border-radius: var(--raio-lg);
@@ -170,5 +183,22 @@
         text-decoration: underline;
         cursor: pointer;
         font-family: var(--fonte-corpo);
+    }
+
+    /* ===== Desktop: conteúdo centralizado, cartões em grade ===== */
+    @media (min-width: 960px) {
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .cartoes {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .cartao {
+            flex: 1 1 260px;
+        }
     }
 </style>

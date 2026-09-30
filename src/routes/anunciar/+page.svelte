@@ -1140,4 +1140,42 @@
         opacity: 0.6;
         cursor: not-allowed;
     }
+
+    /* ===== Desktop: assistente centralizado, como um cartão ===== */
+    @media (min-width: 960px) {
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 3rem;
+        }
+
+        .convite {
+            min-height: 70dvh;
+        }
+
+        .topo,
+        .conteudo-etapa {
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .comodidades-grade {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .rodape {
+            position: static;
+            width: 100%;
+            max-width: 640px;
+            border-radius: var(--raio-lg);
+            box-shadow: 0 4px 16px rgba(31, 42, 38, 0.08);
+            margin-top: 1rem;
+        }
+
+        .botao-principal {
+            max-width: 320px;
+            margin: 0 auto;
+        }
+    }
 </style>

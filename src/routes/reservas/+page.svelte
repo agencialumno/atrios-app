@@ -658,4 +658,29 @@
         opacity: 0.6;
         cursor: not-allowed;
     }
+
+    /* ===== Desktop: centralizado, cards em grade, folha de confirmação vira modal central ===== */
+    @media (min-width: 960px) {
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .lista {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+
+        .fundo {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .folha {
+            width: 100%;
+            max-width: 420px;
+            border-radius: var(--raio-lg);
+        }
+    }
 </style>

@@ -203,4 +203,30 @@
         font-weight: 600;
         text-decoration: none;
     }
+
+    /* ===== Desktop: cartão centralizado, fundo em split ===== */
+    @media (min-width: 960px) {
+        main {
+            flex-direction: row;
+            align-items: stretch;
+        }
+
+        .topo {
+            flex: 1;
+            height: auto;
+        }
+
+        .folha {
+            flex: 0 0 440px;
+            margin-top: 0;
+            border-radius: 0;
+            padding: 3rem 3.5rem;
+            justify-content: center;
+            box-shadow: -8px 0 30px rgba(31, 42, 38, 0.06);
+        }
+
+        .logo {
+            margin: 0 auto 2rem;
+        }
+    }
 </style>
