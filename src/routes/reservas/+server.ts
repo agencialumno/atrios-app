@@ -3,6 +3,11 @@ import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { extrairClaims } from "$lib/server/auth";
 import { existeConflito } from "$lib/server/calendario";
+import {
+  stripeAtivo,
+  criarSessao,
+  MINUTOS_RESERVA,
+} from "$lib/server/pagamentos";
 import type { RequestHandler } from "./$types";
 
 interface NovaReserva {
@@ -12,7 +17,7 @@ interface NovaReserva {
   num_hospedes: number;
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, url }) => {
   const claims = await extrairClaims(request.headers);
   const corpo = (await request.json()) as NovaReserva;
 
@@ -34,7 +39,7 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const [imovel] = await sql`
-        select proprietario_id, capacidade_hospedes, preco_base_noite, status
+        select proprietario_id, capacidade_hospedes, preco_base_noite, status, nome, endereco, cidade
         from imoveis
         where id = ${corpo.imovel_id}
     `;
@@ -43,12 +48,9 @@ export const POST: RequestHandler = async ({ request }) => {
   if (imovel.status !== "ativo") {
     throw error(400, "este anúncio está pausado e não aceita novas reservas");
   }
-
-  // Regra: o dono não reserva o próprio imóvel
   if (imovel.proprietario_id === claims.sub) {
     throw error(403, "você não pode reservar o seu próprio imóvel");
   }
-
   if (corpo.num_hospedes > imovel.capacidade_hospedes) {
     throw error(
       400,
@@ -71,14 +73,21 @@ export const POST: RequestHandler = async ({ request }) => {
   );
   const valorTotal = noites * Number(imovel.preco_base_noite);
 
+  // Com o Stripe ligado, a reserva nasce pendente e só confirma depois do pagamento
+  const cobrar = stripeAtivo();
+  const status = cobrar ? "pendente" : "confirmada";
+
   const reservaId = randomUUID();
   const bloqueioId = randomUUID();
 
-  // Reserva + bloqueio + tarefa de limpeza nascem juntos, ou nenhum nasce
   await sql.begin(async (tx) => {
     await tx`
-            insert into reservas (id, imovel_id, hospede_id, data_checkin, data_checkout, num_hospedes, valor_total, status)
-            values (${reservaId}, ${corpo.imovel_id}, ${claims.sub}, ${corpo.data_checkin}, ${corpo.data_checkout}, ${corpo.num_hospedes}, ${valorTotal}, 'confirmada')
+            insert into reservas (id, imovel_id, hospede_id, data_checkin, data_checkout, num_hospedes, valor_total, status, expira_em)
+            values (
+                ${reservaId}, ${corpo.imovel_id}, ${claims.sub}, ${corpo.data_checkin}, ${corpo.data_checkout},
+                ${corpo.num_hospedes}, ${valorTotal}, ${status},
+                case when ${status} = 'pendente' then now() + interval '${sql.unsafe(String(MINUTOS_RESERVA))} minutes' end
+            )
         `;
 
     await tx`
@@ -86,15 +95,46 @@ export const POST: RequestHandler = async ({ request }) => {
             values (${bloqueioId}, ${corpo.imovel_id}, ${corpo.data_checkin}, ${corpo.data_checkout}, 'atrios_reserva', ${reservaId})
         `;
 
-    await tx`
-            insert into tarefas (id, imovel_id, reserva_id, tipo, data)
-            values (${randomUUID()}, ${corpo.imovel_id}, ${reservaId}, 'limpeza', ${corpo.data_checkout})
-        `;
+    if (!cobrar) {
+      await tx`
+                insert into tarefas (id, imovel_id, reserva_id, tipo, data)
+                values (${randomUUID()}, ${corpo.imovel_id}, ${reservaId}, 'limpeza', ${corpo.data_checkout})
+            `;
+    }
   });
+
+  let checkoutUrl: string | null = null;
+
+  if (cobrar) {
+    const [usuario] =
+      await sql`select email from usuarios where id = ${claims.sub}`;
+
+    try {
+      checkoutUrl = await criarSessao(reservaId, {
+        imovelNome: imovel.nome,
+        endereco: `${imovel.endereco}`,
+        checkin: corpo.data_checkin,
+        checkout: corpo.data_checkout,
+        numHospedes: corpo.num_hospedes,
+        valorTotal,
+        emailHospede: usuario?.email ?? "",
+        origem: url.origin,
+      });
+    } catch (e) {
+      // Desfaz: as datas voltam a ficar livres
+      await sql`delete from calendario_bloqueios where reserva_id = ${reservaId}`;
+      await sql`delete from reservas where id = ${reservaId}`;
+
+      throw error(
+        502,
+        "Não foi possível iniciar o pagamento. Tente de novo em instantes.",
+      );
+    }
+  }
 
   const [reserva] = await sql`select * from reservas where id = ${reservaId}`;
 
-  return json(reserva);
+  return json({ ...reserva, checkout_url: checkoutUrl });
 };
 
 export const GET: RequestHandler = async ({ request }) => {
