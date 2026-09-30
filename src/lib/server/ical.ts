@@ -20,8 +20,6 @@ export function parsearICS(texto: string): EventoICS[] {
 }
 
 function extrairData(bloco: string, campo: string): string | null {
-  // Cobre tanto "DTSTART;VALUE=DATE:20261210" (formato comum do Airbnb/Booking)
-  // quanto "DTSTART:20261210T000000Z"
   const regex = new RegExp(`${campo}[^:\\n]*:(\\d{8})`);
   const encontrado = bloco.match(regex);
   if (!encontrado) return null;
@@ -30,9 +28,18 @@ function extrairData(bloco: string, campo: string): string | null {
   return `${bruto.slice(0, 4)}-${bruto.slice(4, 6)}-${bruto.slice(6, 8)}`;
 }
 
+/** Converte qualquer formato que o banco devolva (Date, string ISO, ou já AAAAMMDD) para AAAAMMDD puro */
+function paraAAAAMMDD(valor: unknown): string {
+  const data = valor instanceof Date ? valor : new Date(String(valor));
+  if (isNaN(data.getTime())) {
+    return String(valor).replace(/-/g, "").slice(0, 8);
+  }
+  return data.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
 /** Gera um .ics a partir dos bloqueios do imóvel, excluindo os que vieram do próprio canal de destino (sem eco) */
 export function gerarICS(
-  bloqueios: { data_inicio: string; data_fim: string; origem: string }[],
+  bloqueios: { data_inicio: unknown; data_fim: unknown; origem: string }[],
   imovelNome: string,
   destino: string | null,
 ): string {
@@ -43,10 +50,10 @@ export function gerarICS(
   ];
 
   for (const b of bloqueios) {
-    if (destino && b.origem === destino) continue; // não exporta de volta pro canal de origem
+    if (destino && b.origem === destino) continue;
 
-    const inicio = String(b.data_inicio).replace(/-/g, "");
-    const fim = String(b.data_fim).replace(/-/g, "");
+    const inicio = paraAAAAMMDD(b.data_inicio);
+    const fim = paraAAAAMMDD(b.data_fim);
 
     linhas.push(
       "BEGIN:VEVENT",
