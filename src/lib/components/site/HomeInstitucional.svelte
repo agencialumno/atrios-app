@@ -67,11 +67,14 @@
         }
     }
 
+    let todosImoveis = $state<Imovel[]>([]);
+
     onMount(async () => {
         try {
-            const todos = await api<Imovel[]>("/imoveis");
-            imoveis = todos.slice(0, 3);
+            todosImoveis = await api<Imovel[]>("/imoveis");
+            imoveis = todosImoveis.slice(0, 3);
         } catch {
+            todosImoveis = [];
             imoveis = [];
         }
     });
@@ -151,6 +154,37 @@
             </div>
         </div>
     </section>
+
+    {#if todosImoveis.length > 0}
+        <section class="galeria-rolante">
+            <div class="galeria-trilho">
+                {#each todosImoveis as im (im.id)}
+                    {@const foto = lerPrimeiraFoto(im.fotos)}
+                    <a href="/imoveis-site/{im.id}" class="galeria-card">
+                        <div class="galeria-foto">
+                            {#if foto}
+                                <img src={foto} alt={im.nome} loading="lazy" />
+                            {:else}
+                                <img
+                                    src="/atrios-simbolo.png"
+                                    alt=""
+                                    class="sem-foto"
+                                />
+                            {/if}
+                        </div>
+                        <div class="galeria-info">
+                            <h3>{im.nome}</h3>
+                            <p>{im.cidade}</p>
+                            <strong
+                                >R$ {im.preco_base_noite.toFixed(0)}
+                                <span>/noite</span></strong
+                            >
+                        </div>
+                    </a>
+                {/each}
+            </div>
+        </section>
+    {/if}
 
     <section class="beneficios">
         {#each beneficios as b (b.titulo)}
@@ -740,6 +774,106 @@
         .hero {
             padding: 6rem 0 10rem;
             text-align: left;
+        }
+    }
+
+    /* Galeria rolante de imóveis */
+    .galeria-rolante {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 3.5rem 2.5rem 1rem;
+    }
+
+    .galeria-trilho {
+        display: flex;
+        gap: 1.3rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: thin;
+    }
+
+    .galeria-trilho::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .galeria-trilho::-webkit-scrollbar-thumb {
+        background-color: var(--atrios-dourado);
+        border-radius: 999px;
+    }
+
+    .galeria-card {
+        flex: 0 0 260px;
+        scroll-snap-align: start;
+        display: block;
+        text-decoration: none;
+        color: var(--cor-texto);
+        border-radius: var(--raio-lg);
+        overflow: hidden;
+        background-color: var(--atrios-branco);
+        box-shadow: 0 6px 20px rgba(31, 42, 38, 0.08);
+        transition: transform 0.25s;
+    }
+
+    .galeria-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .galeria-foto {
+        aspect-ratio: 4 / 3;
+        background-color: var(--atrios-creme);
+    }
+
+    .galeria-foto img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .galeria-foto img.sem-foto {
+        object-fit: contain;
+        padding: 2rem;
+        opacity: 0.4;
+    }
+
+    .galeria-info {
+        padding: 0.9rem 1.1rem 1.2rem;
+    }
+
+    .galeria-info h3 {
+        font-family: var(--fonte-titulo);
+        font-size: 0.92rem;
+        margin: 0 0 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .galeria-info p {
+        font-size: 0.78rem;
+        opacity: 0.65;
+        margin: 0 0 0.5rem;
+    }
+
+    .galeria-info strong {
+        font-family: var(--fonte-titulo);
+        font-size: 0.98rem;
+    }
+
+    .galeria-info strong span {
+        font-family: var(--fonte-corpo);
+        font-weight: 400;
+        font-size: 0.72rem;
+        opacity: 0.6;
+    }
+
+    @media (max-width: 620px) {
+        .galeria-rolante {
+            padding: 2.5rem 1.5rem 1rem;
+        }
+
+        .galeria-card {
+            flex: 0 0 210px;
         }
     }
 </style>
