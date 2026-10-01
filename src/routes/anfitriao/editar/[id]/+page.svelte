@@ -1178,35 +1178,46 @@
         .conteudo-grade {
             max-width: 1100px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
             gap: 1.2rem;
-            align-items: start;
+            align-items: flex-start;
+        }
+
+        /* Coluna 1: tudo que vem antes de "Dados do imóvel" (status, fotos, vídeo, área comum) */
+        .conteudo-grade > :not(.coluna-direita-inicio):not(.rodape) {
+            flex: 1;
+            min-width: 0;
         }
 
         .status-full {
-            grid-column: 1 / -1;
+            width: 100%;
+        }
+
+        /* O status continua ocupando a largura toda, acima das duas colunas */
+        .status-full {
+            order: -1;
+            flex-basis: 100%;
+        }
+
+        /* Coluna 2: Dados do imóvel, Comodidades, e o botão de salvar, um embaixo do outro */
+        .coluna-direita-inicio,
+        .coluna-direita-inicio ~ .cartao,
+        .rodape {
+            flex: 1;
+            min-width: 0;
         }
 
         .coluna-direita-inicio {
-            grid-column: 2;
-            grid-row: 2 / span 10;
+            order: 2;
         }
 
         .rodape {
+            order: 999;
             position: static;
-            max-width: 1100px;
-            margin: 1.5rem auto 0;
             padding: 0;
             background: none;
             box-shadow: none;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.2rem;
-        }
-
-        .rodape > * {
-            grid-column: 2;
+            margin: 0;
         }
 
         .rodape .botao-principal {
