@@ -101,13 +101,6 @@
     <header>
         <img src="/atrios-logo-horizontal.png" alt="Átrios" class="logo" />
 
-        <button
-            class="botao-anunciar-desktop"
-            onclick={() => goto("/anunciar")}
-        >
-            + Anunciar
-        </button>
-
         <div class="linha-saudacao">
             <div class="saudacao">
                 <h1>Olá{primeiroNome ? `, ${primeiroNome}` : ""} 👋</h1>
@@ -115,6 +108,12 @@
             </div>
 
             <div class="acoes">
+                <button
+                    class="botao-anunciar-desktop"
+                    onclick={() => goto("/anunciar")}
+                >
+                    + Anunciar
+                </button>
                 <button
                     class="botao-icone botao-sino"
                     aria-label="Notificações"
@@ -616,7 +615,6 @@
             font-size: 0.85rem;
             cursor: pointer;
             white-space: nowrap;
-            margin-left: auto;
         }
 
         .saudacao {
