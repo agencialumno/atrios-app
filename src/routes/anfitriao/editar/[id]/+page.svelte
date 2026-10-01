@@ -400,8 +400,8 @@
             <h1>Editar anúncio</h1>
         </div>
 
-        <div class="conteudo">
-            <section class="cartao status" class:pausado={!ativo}>
+        <div class="conteudo conteudo-grade">
+            <section class="cartao status status-full" class:pausado={!ativo}>
                 <div class="status-textos">
                     <p class="status-titulo">
                         {ativo ? "Anúncio ativo" : "Anúncio pausado"}
@@ -565,7 +565,7 @@
                 {/if}
             </section>
 
-            <section class="cartao">
+            <section class="cartao coluna-direita-inicio">
                 <h2>Dados do imóvel</h2>
 
                 <span class="rotulo-secao">Tipo do imóvel</span>
@@ -1165,5 +1165,45 @@
     .botao-principal:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+    }
+
+    /* ===== Desktop: duas colunas — mídia à esquerda, dados à direita ===== */
+    @media (min-width: 960px) {
+        .topo {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .conteudo-grade {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            align-items: start;
+        }
+
+        .status-full {
+            grid-column: 1 / -1;
+        }
+
+        .coluna-direita-inicio {
+            grid-column: 2;
+            grid-row: 2 / span 10;
+        }
+
+        .rodape {
+            position: static;
+            max-width: 1100px;
+            margin: 1.5rem auto 0;
+            border-radius: var(--raio-lg);
+            box-shadow: 0 4px 16px rgba(31, 42, 38, 0.08);
+        }
+
+        main {
+            padding-bottom: 3rem;
+        }
     }
 </style>
