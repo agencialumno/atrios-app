@@ -1179,10 +1179,11 @@
             grid-column: 1 / -1;
         }
 
-        /* Só "Dados do imóvel" vai para a direita (mesma especificidade da regra acima: duas classes) */
-        /* Só "Dados do imóvel" vai para a direita, começando na mesma linha de "Fotos" */
+        /* "Dados do imóvel" vai para a direita, espalhando sua altura por 4 linhas
+           (mesmo número de cards da esquerda), em vez de forçar uma linha só a ficar gigante */
         .conteudo-grade > .coluna-direita-inicio {
             grid-column: 2;
+            grid-row: 2 / span 4;
         }
 
         .rodape-desktop {
