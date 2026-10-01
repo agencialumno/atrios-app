@@ -57,30 +57,30 @@ jobs:
           brew install xcodegen || true
           bun install
 
-                - name: Importar o certificado de distribuicao
-                  env:
-                    CERTIFICADO_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
-                    SENHA_CERTIFICADO: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-                  run: |
-                    KEYCHAIN_PATH="$RUNNER_TEMP/atrios.keychain-db"
-                    KEYCHAIN_SENHA=$(uuidgen)
+                      - name: Importar o certificado de distribuicao
+                        env:
+                          CERTIFICADO_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+                          SENHA_CERTIFICADO: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+                        run: |
+                          KEYCHAIN_PATH="$RUNNER_TEMP/atrios.keychain-db"
+                          KEYCHAIN_SENHA=$(uuidgen)
 
-                    # Cria um keychain novo so para este build, com senha aleatoria
-                    security create-keychain -p "$KEYCHAIN_SENHA" "$KEYCHAIN_PATH"
-                    security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-                    security unlock-keychain -p "$KEYCHAIN_SENHA" "$KEYCHAIN_PATH"
+                          # Cria um keychain novo so para este build, com senha aleatoria
+                          security create-keychain -p "$KEYCHAIN_SENHA" "$KEYCHAIN_PATH"
+                          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+                          security unlock-keychain -p "$KEYCHAIN_SENHA" "$KEYCHAIN_PATH"
 
-                    # Decodifica o .p12 (veio em base64) e importa no keychain
-                    echo "$CERTIFICADO_P12" | base64 -d > "$RUNNER_TEMP/distribuicao.p12"
-                    security import "$RUNNER_TEMP/distribuicao.p12" -k "$KEYCHAIN_PATH" -P "$SENHA_CERTIFICADO" -T /usr/bin/codesign -T /usr/bin/security
+                          # Decodifica o .p12 (veio em base64) e importa no keychain
+                          echo "$CERTIFICADO_P12" | base64 -d > "$RUNNER_TEMP/distribuicao.p12"
+                          security import "$RUNNER_TEMP/distribuicao.p12" -k "$KEYCHAIN_PATH" -P "$SENHA_CERTIFICADO" -T /usr/bin/codesign -T /usr/bin/security
 
-                    # Permite que o codesign use essa chave sem pedir senha interativamente
-                    security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_SENHA" "$KEYCHAIN_PATH"
+                          # Permite que o codesign use essa chave sem pedir senha interativamente
+                          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_SENHA" "$KEYCHAIN_PATH"
 
-                    # Adiciona esse keychain a lista de busca, sem remover os que ja existem
-                    security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
+                          # Adiciona esse keychain a lista de busca, sem remover os que ja existem
+                          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
 
-                    rm -f "$RUNNER_TEMP/distribuicao.p12"
+                          rm -f "$RUNNER_TEMP/distribuicao.p12"
 
       - name: Preparar a chave da App Store Connect
         env:

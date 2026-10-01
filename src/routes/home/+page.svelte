@@ -26,6 +26,13 @@
     let erro = $state("");
     let busca = $state("");
     let categoriaSelecionada: string | null = $state(null);
+    let filtroAberto = $state(false);
+    let precoMax = $state(2000);
+    let hospedesMin = $state(1);
+
+    function formatarReaisSimples(v: number): string {
+        return `R$ ${v}`;
+    }
 
     async function carregar() {
         try {
@@ -83,7 +90,9 @@
                 !termo ||
                 i.nome.toLowerCase().includes(termo) ||
                 i.cidade.toLowerCase().includes(termo);
-            return passaCategoria && passaBusca;
+            const passaPreco = i.preco_base_noite <= precoMax;
+            const passaHospedes = i.capacidade_hospedes >= hospedesMin;
+            return passaCategoria && passaBusca && passaPreco && passaHospedes;
         }),
     );
 </script>
@@ -91,6 +100,13 @@
 <main>
     <header>
         <img src="/atrios-logo-horizontal.png" alt="Átrios" class="logo" />
+
+        <button
+            class="botao-anunciar-desktop"
+            onclick={() => goto("/anunciar")}
+        >
+            + Anunciar
+        </button>
 
         <div class="linha-saudacao">
             <div class="saudacao">
@@ -125,7 +141,11 @@
                 bind:value={busca}
             />
         </label>
-        <button class="botao-icone" aria-label="Filtros">
+        <button
+            class="botao-icone"
+            aria-label="Filtros"
+            onclick={() => (filtroAberto = true)}
+        >
             <span class="icone">{@html icones.filtros}</span>
         </button>
     </div>
@@ -200,6 +220,63 @@
             </div>
         {/if}
     </section>
+
+    {#if filtroAberto}
+        <div
+            class="fundo-filtro"
+            onclick={() => (filtroAberto = false)}
+            role="presentation"
+        >
+            <div
+                class="painel-filtro"
+                onclick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Filtros"
+            >
+                <h2>Filtros</h2>
+
+                <label class="campo-filtro">
+                    Preço máximo por noite: {formatarReaisSimples(precoMax)}
+                    <input
+                        type="range"
+                        min="100"
+                        max="2000"
+                        step="50"
+                        bind:value={precoMax}
+                    />
+                </label>
+
+                <label class="campo-filtro">
+                    Hóspedes mínimo: {hospedesMin}
+                    <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        step="1"
+                        bind:value={hospedesMin}
+                    />
+                </label>
+
+                <button
+                    class="botao-aplicar"
+                    onclick={() => (filtroAberto = false)}
+                >
+                    Ver {imoveisFiltrados.length}
+                    {imoveisFiltrados.length === 1 ? "resultado" : "resultados"}
+                </button>
+                <button
+                    class="link-limpar"
+                    onclick={() => {
+                        precoMax = 2000;
+                        hospedesMin = 1;
+                    }}
+                >
+                    Limpar filtros
+                </button>
+            </div>
+        </div>
+    {/if}
 </main>
 
 <style>
@@ -393,6 +470,9 @@
         opacity: 1;
     }
 
+    .botao-anunciar-desktop {
+        display: none;
+    }
     .carregando-wrapper {
         display: flex;
         flex-direction: column;
@@ -522,6 +602,23 @@
             gap: 1rem;
         }
 
+        .botao-anunciar-desktop {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.65rem 1.2rem;
+            border: none;
+            border-radius: var(--raio-pill);
+            background-color: var(--atrios-dourado);
+            color: var(--atrios-verde-escuro);
+            font-family: var(--fonte-corpo);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
         .saudacao {
             text-align: left;
         }
@@ -576,5 +673,74 @@
         font-weight: 600;
         font-size: 0.85rem;
         cursor: pointer;
+    }
+
+    .fundo-filtro {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        background-color: rgba(31, 42, 38, 0.45);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .painel-filtro {
+        width: 100%;
+        max-width: 420px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.6rem 1.4rem;
+        background-color: var(--atrios-branco);
+        border-radius: var(--raio-lg) var(--raio-lg) 0 0;
+        font-family: var(--fonte-corpo);
+    }
+
+    .painel-filtro h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--cor-texto);
+    }
+
+    .campo-filtro {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--cor-texto);
+    }
+
+    .botao-aplicar {
+        padding: 0.85rem;
+        border: none;
+        border-radius: var(--raio-pill);
+        background-color: var(--atrios-dourado);
+        color: var(--atrios-verde-escuro);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .link-limpar {
+        align-self: center;
+        padding: 0;
+        border: none;
+        background: none;
+        font-size: 0.8rem;
+        color: var(--cor-texto);
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    @media (min-width: 960px) {
+        .fundo-filtro {
+            align-items: center;
+        }
+
+        .painel-filtro {
+            border-radius: var(--raio-lg);
+        }
     }
 </style>
