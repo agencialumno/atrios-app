@@ -641,7 +641,7 @@
                 </label>
             </section>
 
-            <section class="cartao coluna-direita">
+            <section class="cartao">
                 <h2>Comodidades</h2>
 
                 <div class="comodidades-grade">
@@ -670,7 +670,7 @@
             </section>
         </div>
 
-        <div class="rodape coluna-direita">
+        <div class="rodape">
             {#if jaPublicando}
                 <p class="aviso">
                     Aguarde a publicação em andamento terminar para salvar.
@@ -1171,24 +1171,32 @@
             grid-column: 1 / -1;
         }
 
-        .coluna-direita-inicio,
-        .coluna-direita {
+        /* Todo .cartao vai para a coluna esquerda por padrão (Fotos, Vídeo, Área comum, Comodidades) */
+        .conteudo-grade > .cartao {
+            grid-column: 1;
+        }
+
+        /* Só "Dados do imóvel" fica na coluna direita */
+        .coluna-direita-inicio {
             grid-column: 2;
         }
 
-        .rodape.coluna-direita {
+        /* O rodapé (botão de salvar) fica alinhado à direita, com a largura da coluna direita */
+        .rodape {
             position: static;
-            padding: 0;
+            max-width: 1100px;
             margin: 1.2rem auto 0;
+            padding: 0;
             background: none;
             box-shadow: none;
-            max-width: 1100px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
         }
 
-        .rodape.coluna-direita > * {
-            grid-column: 2;
+        .rodape > * {
+            width: 100%;
+            max-width: calc(50% - 0.6rem);
         }
 
         .rodape .botao-principal {
