@@ -36,8 +36,8 @@
 
     interface ItemFoto {
         chave: string;
-        url: string; // endereço no servidor, ou prévia local para foto nova
-        arquivo: File | null; // preenchido só para fotos novas
+        url: string;
+        arquivo: File | null;
     }
 
     let contador = 0;
@@ -64,11 +64,10 @@
     let videoAtual = $state<string | null>(null);
     let videoNovo = $state<File | null>(null);
 
-    // Área comum do condomínio
     let areaFotos = $state<ItemFoto[]>([]);
     let areaVideoAtual = $state<string | null>(null);
     let areaVideoNovo = $state<File | null>(null);
-    let areaAlterada = $state(false); // só envia a área comum se ela foi mexida
+    let areaAlterada = $state(false);
 
     let erro = $state("");
     let alterandoStatus = $state(false);
@@ -117,7 +116,6 @@
             precoBaseNoite = dados.preco_base_noite;
             descricao = dados.descricao ?? "";
 
-            // Comodidades: o que o catálogo reconhece vira seleção, o resto vai para "outras"
             const conhecidas: string[] = [];
             const restantes: string[] = [];
             for (const texto of lerLista(dados.comodidades)) {
@@ -186,8 +184,6 @@
         return copia;
     }
 
-    // ----- Fotos e vídeo do apartamento -----
-
     function adicionarFotos(e: Event) {
         const input = e.currentTarget as HTMLInputElement;
         fotos = [...fotos, ...paraItens(input)];
@@ -215,8 +211,6 @@
         videoNovo = null;
         videoAtual = null;
     }
-
-    // ----- Fotos e vídeo da área comum -----
 
     function adicionarAreaFotos(e: Event) {
         const input = e.currentTarget as HTMLInputElement;
@@ -676,7 +670,7 @@
             </section>
         </div>
 
-        <div class="rodape">
+        <div class="rodape coluna-direita">
             {#if jaPublicando}
                 <p class="aviso">
                     Aguarde a publicação em andamento terminar para salvar.
@@ -791,7 +785,6 @@
         opacity: 0.65;
     }
 
-    /* Status */
     .status {
         flex-direction: row;
         align-items: center;
@@ -842,7 +835,6 @@
         cursor: not-allowed;
     }
 
-    /* Fotos */
     .grade-fotos {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -941,7 +933,6 @@
         display: none;
     }
 
-    /* Vídeo */
     .video-linha {
         display: flex;
         align-items: center;
@@ -980,7 +971,6 @@
         color: #b23a2f;
     }
 
-    /* Formulário */
     .rotulo-secao {
         font-size: 0.78rem;
         font-weight: 500;
@@ -1120,7 +1110,6 @@
         white-space: nowrap;
     }
 
-    /* Rodapé de salvar */
     .rodape {
         position: fixed;
         left: 0;
@@ -1134,12 +1123,6 @@
         background-color: var(--atrios-branco);
         border-radius: var(--raio-lg) var(--raio-lg) 0 0;
         box-shadow: 0 -4px 16px rgba(31, 42, 38, 0.1);
-    }
-
-    .rodape .erro {
-        margin: 0;
-        font-size: 0.78rem;
-        color: #b23a2f;
     }
 
     .rodape .aviso {
@@ -1188,20 +1171,24 @@
             grid-column: 1 / -1;
         }
 
-        .coluna-direita-inicio {
-            .coluna-direita {
+        .coluna-direita-inicio,
+        .coluna-direita {
             grid-column: 2;
         }
 
-        /* O rodapé some do fluxo normal e vira um item a mais da coluna 2,
-           logo depois de "Comodidades" (que também fica na coluna 2) */
-        .rodape {
-            grid-column: 2;
+        .rodape.coluna-direita {
             position: static;
             padding: 0;
-            margin: 0;
+            margin: 1.2rem auto 0;
             background: none;
             box-shadow: none;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .rodape.coluna-direita > * {
+            grid-column: 2;
         }
 
         .rodape .botao-principal {
