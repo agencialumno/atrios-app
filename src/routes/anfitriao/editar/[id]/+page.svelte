@@ -1197,7 +1197,19 @@
             position: static;
             max-width: 1100px;
             margin: 1.5rem auto 0;
-            border-radius: var(--raio-lg);
+            padding: 0;
+            background: none;
+            box-shadow: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+
+        .rodape > * {
+            grid-column: 2;
+        }
+
+        .rodape .botao-principal {
             box-shadow: 0 4px 16px rgba(31, 42, 38, 0.08);
         }
 
