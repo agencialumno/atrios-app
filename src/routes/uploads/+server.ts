@@ -1,22 +1,38 @@
 import { json, error } from "@sveltejs/kit";
-import { put } from "@vercel/blob";
-import { extrairClaims } from "$lib/server/auth";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { jwtVerify } from "jose";
+import { JWT_SECRET } from "$env/static/private";
 import type { RequestHandler } from "./$types";
 
-export const POST: RequestHandler = async ({ request }) => {
-  await extrairClaims(request.headers); // só exige estar logado
+const segredo = new TextEncoder().encode(JWT_SECRET);
 
-  const formData = await request.formData();
-  const arquivo = formData.get("arquivo");
+export const POST: RequestHandler = async ({ request, url }) => {
+  // O navegador manda o token como ?token=... porque esta chamada é feita
+  // pela biblioteca do Vercel Blob, que não deixa adicionar o cabeçalho Authorization
+  const token = url.searchParams.get("token");
+  if (!token) throw error(401, "não autenticado");
 
-  if (!(arquivo instanceof File)) {
-    throw error(400, "nenhum arquivo enviado");
+  try {
+    await jwtVerify(token, segredo);
+  } catch {
+    throw error(401, "token inválido ou expirado");
   }
 
-  const blob = await put(arquivo.name, arquivo, {
-    access: "public",
-    addRandomSuffix: true,
-  });
+  const body = (await request.json()) as HandleUploadBody;
 
-  return json({ url: blob.url });
+  try {
+    const resposta = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async () => ({
+        allowedContentTypes: ["image/*", "video/*"],
+        addRandomSuffix: true,
+      }),
+      onUploadCompleted: async () => {},
+    });
+
+    return json(resposta);
+  } catch (e) {
+    throw error(400, e instanceof Error ? e.message : "falha no upload");
+  }
 };

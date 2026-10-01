@@ -2,6 +2,7 @@ import { writable, get } from "svelte/store";
 import { api } from "$lib/api/client";
 import { API_URL } from "$lib/config";
 import { comprimirImagem } from "$lib/imagens";
+import { upload } from "@vercel/blob/client";
 
 const MOSTRAR_CONCLUIDO_MS = 4000;
 
@@ -99,35 +100,16 @@ function enviarComProgresso(
   aoProgredir: (fracao: number) => void,
   aoTerminarEnvio: () => void,
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_URL}/uploads`);
+  const token = localStorage.getItem("atrios_token") ?? "";
 
-    const token = localStorage.getItem("atrios_token");
-    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) aoProgredir(e.loaded / e.total);
-    };
-    xhr.upload.onload = () => aoTerminarEnvio();
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          resolve(JSON.parse(xhr.responseText).url);
-        } catch {
-          reject(new Error("Resposta inválida do servidor"));
-        }
-      } else {
-        reject(new Error(xhr.responseText || "Falha ao enviar arquivo"));
-      }
-    };
-    xhr.onerror = () => reject(new Error("Sem conexão com o servidor"));
-
-    const formData = new FormData();
-    formData.append("arquivo", arquivo);
-    xhr.send(formData);
-  });
+  return upload(arquivo.name, arquivo, {
+    access: "public",
+    handleUploadUrl: `${API_URL}/uploads?token=${encodeURIComponent(token)}`,
+    onUploadProgress: ({ percentage }) => {
+      aoProgredir(percentage / 100);
+      if (percentage >= 100) aoTerminarEnvio();
+    },
+  }).then((blob) => blob.url);
 }
 
 async function executar() {
