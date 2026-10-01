@@ -28,6 +28,21 @@
         <div class="acoes">
             <a href="/login" class="botao-cliente">Já sou cliente</a>
             <a href="/contato" class="botao-cta">Fale Conosco</a>
+            <a
+                href="/login"
+                class="botao-cliente-mobile"
+                aria-label="Já sou cliente"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                >
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+                </svg>
+            </a>
             <button
                 class="botao-menu"
                 onclick={() => (menuAberto = !menuAberto)}
@@ -47,13 +62,6 @@
                     >{l.rotulo}</a
                 >
             {/each}
-            <a
-                href="/login"
-                class="link-cliente-mobile"
-                onclick={() => (menuAberto = false)}
-            >
-                Já sou cliente
-            </a>
         </nav>
     {/if}
 </header>
@@ -156,6 +164,23 @@
         text-decoration: none;
     }
 
+    .botao-cliente-mobile {
+        display: flex;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: var(--atrios-dourado);
+        color: var(--atrios-verde-escuro);
+        flex-shrink: 0;
+    }
+
+    .botao-cliente-mobile svg {
+        width: 20px;
+        height: 20px;
+    }
+
     .botao-menu {
         width: 40px;
         height: 40px;
@@ -199,7 +224,8 @@
             display: flex;
         }
 
-        .botao-menu {
+        .botao-menu,
+        .botao-cliente-mobile {
             display: none;
         }
     }
