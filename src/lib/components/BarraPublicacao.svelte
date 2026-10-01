@@ -222,4 +222,20 @@
     .faixa.comErro .preenchido {
         background-color: #b23a2f;
     }
+
+    /* ===== Desktop: vira um cartão compacto ancorado no canto, não uma faixa esticada ===== */
+    @media (min-width: 960px) {
+        .faixa {
+            left: auto;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            width: 380px;
+            border-radius: var(--raio-lg);
+        }
+
+        .faixa.topo {
+            bottom: auto;
+            top: 1.5rem;
+        }
+    }
 </style>
