@@ -263,7 +263,7 @@
                 method: "POST",
                 autenticado: true,
                 body: {
-                    status: imovel.status === "ativo" ? "inativo" : "ativo",
+                    status: imovel.status === "ativo" ? "pausado" : "ativo",
                 },
             });
         } catch (e) {
