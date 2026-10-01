@@ -112,7 +112,10 @@ jobs:
             fi
           done
 
-      - name: Compilar o app (gera apenas o xcarchive)
+      - name: Compilar o app (gera apenas o xcarchive, sem assinar)
+        env:
+          CODE_SIGNING_ALLOWED: "NO"
+          CODE_SIGNING_REQUIRED: "NO"
         run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }} || true
 
       - name: Verificar assinatura dentro do xcarchive (antes da exportacao)
@@ -125,32 +128,38 @@ jobs:
           find "$ARCHIVE_APP" -type f | wc -l
           find "$ARCHIVE_APP" -type f
 
-      - name: Exportar o .ipa manualmente com assinatura explicita
+      - name: Assinar e empacotar o .ipa manualmente (do zero)
         run: |
           ARCHIVE=$(find src-tauri/gen/apple/build -name "*.xcarchive" | head -n 1)
-          echo "Archive encontrado: $ARCHIVE"
-          cat > "$RUNNER_TEMP/exportOptions.plist" << 'PLIST_EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store-connect</string>
-              <key>teamID</key>
-              <string>KH97Q8M556</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-              <key>signingCertificate</key>
-              <string>Apple Distribution</string>
-              <key>provisioningProfiles</key>
-              <dict>
-                  <key>com.agencialumno.atrios</key>
-                  <string>Atrios App Store</string>
-              </dict>
-          </dict>
-          </plist>
-          PLIST_EOF
-          xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "src-tauri/gen/apple/build/export-manual" -exportOptionsPlist "$RUNNER_TEMP/exportOptions.plist" -allowProvisioningUpdates
+          APP_PATH=$(find "$ARCHIVE" -name "*.app" | head -n 1)
+          echo "App: $APP_PATH"
+          echo "Copiando o provisioning profile para dentro do app..."
+          cp "$HOME/Library/MobileDevice/Provisioning Profiles/atrios.mobileprovision" "$APP_PATH/embedded.mobileprovision"
+          echo "Extraindo entitlements do provisioning profile..."
+          security cms -D -i "$APP_PATH/embedded.mobileprovision" > "$RUNNER_TEMP/profile.plist"
+          /usr/libexec/PlistBuddy -x -c "Print :Entitlements" "$RUNNER_TEMP/profile.plist" > "$RUNNER_TEMP/entitlements.plist"
+          cat "$RUNNER_TEMP/entitlements.plist"
+          echo "Removendo qualquer assinatura antiga antes de assinar do zero..."
+          rm -rf "$APP_PATH/_CodeSignature"
+          find "$APP_PATH" -name ".DS_Store" -delete
+          echo "Assinando frameworks internos primeiro, se houver..."
+          if [ -d "$APP_PATH/Frameworks" ]; then
+            find "$APP_PATH/Frameworks" -name "*.framework" -o -name "*.dylib" | while read -r fw; do
+              codesign --force --sign "Apple Distribution: Lumno Agencia de Marketing LTDA" "$fw"
+            done
+          fi
+          echo "Assinando o app principal..."
+          codesign --force --sign "Apple Distribution: Lumno Agencia de Marketing LTDA" --entitlements "$RUNNER_TEMP/entitlements.plist" "$APP_PATH"
+          echo "Verificando a assinatura recem-feita..."
+          codesign --verify --deep --strict --verbose=4 "$APP_PATH"
+          echo "Empacotando o .ipa manualmente..."
+          mkdir -p "src-tauri/gen/apple/build/export-manual/Payload"
+          cp -R "$APP_PATH" "src-tauri/gen/apple/build/export-manual/Payload/"
+          cd "src-tauri/gen/apple/build/export-manual"
+          zip -qr "Atrios.ipa" "Payload"
+          cd -
+          echo "IPA criado:"
+          find "src-tauri/gen/apple/build/export-manual" -name "*.ipa"
 
       - name: Verificar a assinatura do .ipa antes de enviar
         run: |
