@@ -115,6 +115,16 @@ jobs:
       - name: Compilar o app (gera apenas o xcarchive)
         run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }} || true
 
+      - name: Verificar assinatura dentro do xcarchive (antes da exportacao)
+        run: |
+          ARCHIVE_APP=$(find src-tauri/gen/apple/build -name "*.xcarchive" -exec find {} -name "*.app" \; | head -n 1)
+          echo "App dentro do archive: $ARCHIVE_APP"
+          echo "=== codesign --verify --deep --strict (no xcarchive) ==="
+          codesign --verify --deep --strict --verbose=4 "$ARCHIVE_APP" || echo "JA FALHA NO XCARCHIVE, antes da nossa exportacao"
+          echo "=== Arquivos selados dentro do bundle ==="
+          find "$ARCHIVE_APP" -type f | wc -l
+          find "$ARCHIVE_APP" -type f
+
       - name: Exportar o .ipa manualmente com assinatura explicita
         run: |
           ARCHIVE=$(find src-tauri/gen/apple/build -name "*.xcarchive" | head -n 1)
@@ -151,12 +161,11 @@ jobs:
           APP_PATH=$(find "$TEMP_DIR" -name "*.app" | head -n 1)
           echo "=== codesign --verify --deep --strict ==="
           codesign --verify --deep --strict --verbose=4 "$APP_PATH" || echo "FALHOU na verificacao"
+          echo "=== Arquivos no .app exportado ==="
+          find "$APP_PATH" -type f | wc -l
+          find "$APP_PATH" -type f
           echo "=== codesign -dvvv (detalhes da assinatura) ==="
           codesign -dvvv "$APP_PATH" 2>&1
-          echo "=== Entitlements embutidos ==="
-          codesign -d --entitlements :- "$APP_PATH" 2>&1
-          echo "=== Provisioning profile embutido ==="
-          security cms -D -i "$APP_PATH/embedded.mobileprovision" 2>&1 | head -50
 
       - name: Guardar o arquivo .ipa
         uses: actions/upload-artifact@v4
