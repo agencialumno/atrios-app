@@ -290,142 +290,150 @@
                     sozinhos a cada 15 minutos.
                 </p>
 
-                {#each origens as o (o.id)}
-                    {@const cal = calendarioDe(o.id)}
-                    <section class="cartao">
-                        <div class="cartao-topo">
-                            <h3>{o.nome}</h3>
+                <div class="grade-provedores">
+                    {#each origens as o (o.id)}
+                        {@const cal = calendarioDe(o.id)}
+                        <section class="cartao">
+                            <div class="cartao-topo">
+                                <h3>{o.nome}</h3>
+                                {#if cal}
+                                    <span
+                                        class="chip"
+                                        class:falha={!!cal.ultimo_erro}
+                                    >
+                                        {cal.ultimo_erro
+                                            ? "Com erro"
+                                            : "Conectado"}
+                                    </span>
+                                {/if}
+                            </div>
+
                             {#if cal}
-                                <span
-                                    class="chip"
-                                    class:falha={!!cal.ultimo_erro}
-                                >
-                                    {cal.ultimo_erro ? "Com erro" : "Conectado"}
-                                </span>
-                            {/if}
-                        </div>
-
-                        {#if cal}
-                            <p class="detalhe">Endereço: {hostDe(cal.url)}</p>
-                            <p class="detalhe">
-                                Última sincronização: {quando(
-                                    cal.ultima_sincronizacao,
-                                )}
-                            </p>
-                            <p class="detalhe">
-                                {cal.eventos_importados}
-                                {cal.eventos_importados === 1
-                                    ? "período ocupado importado"
-                                    : "períodos ocupados importados"}
-                            </p>
-
-                            {#if cal.ultimo_erro}
-                                <p class="caixa erro">
-                                    A última sincronização falhou: {cal.ultimo_erro}
+                                <p class="detalhe">
+                                    Endereço: {hostDe(cal.url)}
                                 </p>
-                            {/if}
-
-                            {#if confirmando === o.id}
-                                <p class="ajuda">
-                                    Isso remove os bloqueios importados do {o.nome}.
-                                    As datas voltam a ficar livres para reserva
-                                    aqui.
+                                <p class="detalhe">
+                                    Última sincronização: {quando(
+                                        cal.ultima_sincronizacao,
+                                    )}
                                 </p>
-                                <div class="acoes">
-                                    <button
-                                        class="acao"
-                                        onclick={() => (confirmando = null)}
-                                        >Cancelar</button
-                                    >
-                                    <button
-                                        class="acao perigo"
-                                        onclick={() => desconectar(o.id)}
-                                        disabled={ocupado !== null}
-                                    >
-                                        {ocupado === `${o.id}-desconectar`
-                                            ? "Removendo..."
-                                            : "Sim, desconectar"}
-                                    </button>
-                                </div>
-                            {:else}
-                                <div class="acoes">
-                                    <button
-                                        class="acao-principal"
-                                        onclick={() => sincronizar(o.id)}
-                                        disabled={ocupado !== null}
-                                    >
-                                        {ocupado === `${o.id}-sincronizar`
-                                            ? "Sincronizando..."
-                                            : "Sincronizar agora"}
-                                    </button>
-                                    <button
-                                        class="acao"
-                                        onclick={() => (confirmando = o.id)}
-                                        disabled={ocupado !== null}
-                                    >
-                                        Desconectar
-                                    </button>
-                                </div>
-                            {/if}
-                        {:else}
-                            <label>
-                                Endereço do calendário (.ics)
-                                <input
-                                    type="url"
-                                    bind:value={campos[o.id]}
-                                    placeholder="Cole aqui o link do {o.nome}"
-                                />
-                            </label>
+                                <p class="detalhe">
+                                    {cal.eventos_importados}
+                                    {cal.eventos_importados === 1
+                                        ? "período ocupado importado"
+                                        : "períodos ocupados importados"}
+                                </p>
 
-                            <button
-                                class="acao-principal cheio"
-                                onclick={() => conectar(o.id, campos[o.id])}
-                                disabled={ocupado !== null}
-                            >
-                                {ocupado === `${o.id}-conectar`
-                                    ? "Conectando..."
-                                    : "Conectar"}
-                            </button>
-
-                            {#if o.id === "airbnb"}
-                                <div class="demo">
-                                    <p class="demo-titulo">
-                                        Para a apresentação
+                                {#if cal.ultimo_erro}
+                                    <p class="caixa erro">
+                                        A última sincronização falhou: {cal.ultimo_erro}
                                     </p>
+                                {/if}
+
+                                {#if confirmando === o.id}
                                     <p class="ajuda">
-                                        Conecta um calendário de exemplo do
-                                        Airbnb, com reservas e um bloqueio.
+                                        Isso remove os bloqueios importados do {o.nome}.
+                                        As datas voltam a ficar livres para
+                                        reserva aqui.
                                     </p>
                                     <div class="acoes">
                                         <button
                                             class="acao"
-                                            onclick={() =>
-                                                conectar(
-                                                    "airbnb",
-                                                    dados?.demo.airbnb ?? "",
-                                                )}
+                                            onclick={() => (confirmando = null)}
+                                            >Cancelar</button
+                                        >
+                                        <button
+                                            class="acao perigo"
+                                            onclick={() => desconectar(o.id)}
                                             disabled={ocupado !== null}
                                         >
-                                            Usar demonstração
+                                            {ocupado === `${o.id}-desconectar`
+                                                ? "Removendo..."
+                                                : "Sim, desconectar"}
+                                        </button>
+                                    </div>
+                                {:else}
+                                    <div class="acoes">
+                                        <button
+                                            class="acao-principal"
+                                            onclick={() => sincronizar(o.id)}
+                                            disabled={ocupado !== null}
+                                        >
+                                            {ocupado === `${o.id}-sincronizar`
+                                                ? "Sincronizando..."
+                                                : "Sincronizar agora"}
                                         </button>
                                         <button
                                             class="acao"
-                                            onclick={() =>
-                                                conectar(
-                                                    "airbnb",
-                                                    dados?.demo
-                                                        .airbnb_conflito ?? "",
-                                                )}
+                                            onclick={() => (confirmando = o.id)}
                                             disabled={ocupado !== null}
                                         >
-                                            Com conflito
+                                            Desconectar
                                         </button>
                                     </div>
-                                </div>
+                                {/if}
+                            {:else}
+                                <label>
+                                    Endereço do calendário (.ics)
+                                    <input
+                                        type="url"
+                                        bind:value={campos[o.id]}
+                                        placeholder="Cole aqui o link do {o.nome}"
+                                    />
+                                </label>
+
+                                <button
+                                    class="acao-principal cheio"
+                                    onclick={() => conectar(o.id, campos[o.id])}
+                                    disabled={ocupado !== null}
+                                >
+                                    {ocupado === `${o.id}-conectar`
+                                        ? "Conectando..."
+                                        : "Conectar"}
+                                </button>
+
+                                {#if o.id === "airbnb"}
+                                    <div class="demo">
+                                        <p class="demo-titulo">
+                                            Para a apresentação
+                                        </p>
+                                        <p class="ajuda">
+                                            Conecta um calendário de exemplo do
+                                            Airbnb, com reservas e um bloqueio.
+                                        </p>
+                                        <div class="acoes">
+                                            <button
+                                                class="acao"
+                                                onclick={() =>
+                                                    conectar(
+                                                        "airbnb",
+                                                        dados?.demo.airbnb ??
+                                                            "",
+                                                    )}
+                                                disabled={ocupado !== null}
+                                            >
+                                                Usar demonstração
+                                            </button>
+                                            <button
+                                                class="acao"
+                                                onclick={() =>
+                                                    conectar(
+                                                        "airbnb",
+                                                        dados?.demo
+                                                            .airbnb_conflito ??
+                                                            "",
+                                                    )}
+                                                disabled={ocupado !== null}
+                                            >
+                                                Com conflito
+                                            </button>
+                                        </div>
+                                    </div>
+                                {/if}
                             {/if}
-                        {/if}
-                    </section>
-                {/each}
+                        </section>
+                    {/each}
+                </div>
 
                 <h2 class="titulo-secao">Enviar as reservas da Átrios</h2>
                 <p class="ajuda">
@@ -435,25 +443,32 @@
                     mas não as dele mesmo.
                 </p>
 
-                {#each origens as o (o.id)}
-                    {@const link =
-                        o.id === "airbnb"
-                            ? dados.exportacao.airbnb
-                            : dados.exportacao.booking}
-                    <section class="cartao">
-                        <h3>Para o {o.nome}</h3>
-                        <input
-                            class="link-campo"
-                            type="text"
-                            readonly
-                            value={link}
-                            onclick={(e) => e.currentTarget.select()}
-                        />
-                        <button class="acao" onclick={() => copiar(link, o.id)}>
-                            {copiado === o.id ? "Copiado ✓" : "Copiar endereço"}
-                        </button>
-                    </section>
-                {/each}
+                <div class="grade-provedores">
+                    {#each origens as o (o.id)}
+                        {@const link =
+                            o.id === "airbnb"
+                                ? dados.exportacao.airbnb
+                                : dados.exportacao.booking}
+                        <section class="cartao">
+                            <h3>Para o {o.nome}</h3>
+                            <input
+                                class="link-campo"
+                                type="text"
+                                readonly
+                                value={link}
+                                onclick={(e) => e.currentTarget.select()}
+                            />
+                            <button
+                                class="acao"
+                                onclick={() => copiar(link, o.id)}
+                            >
+                                {copiado === o.id
+                                    ? "Copiado ✓"
+                                    : "Copiar endereço"}
+                            </button>
+                        </section>
+                    {/each}
+                </div>
 
                 <p class="nota">
                     Estes endereços têm um código secreto: cole só no Airbnb e
@@ -749,5 +764,27 @@
         font-weight: 600;
         font-size: 0.9rem;
         cursor: pointer;
+    }
+
+    /* ===== Desktop: container centralizado, cards lado a lado ===== */
+    @media (min-width: 960px) {
+        .topo {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .conteudo {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .grade-provedores {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
     }
 </style>
