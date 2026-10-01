@@ -9,15 +9,20 @@ export const GET: RequestHandler = async ({ request }) => {
   const claims = await extrairClaims(request.headers);
   await exigirEquipe(claims);
 
+  const imoveis = await sql`select id, nome, cidade from imoveis order by nome`;
+
   const ocorrencias = await sql`
-        select o.id, o.imovel_id, o.tipo, o.titulo, o.descricao, o.status,
-               o.criada_por, o.criado_em, o.resolvida_em, i.nome as imovel_nome
+        select o.id, o.imovel_id, i.nome as imovel_nome, o.tipo, o.titulo, o.descricao, o.status,
+               u.nome as criada_por_nome,
+               o.criado_em::text as criado_em,
+               o.resolvida_em::text as resolvida_em
         from ocorrencias o
         join imoveis i on i.id = o.imovel_id
+        join usuarios u on u.id = o.criada_por
         order by o.criado_em desc
     `;
 
-  return json(ocorrencias);
+  return json({ imoveis, ocorrencias });
 };
 
 interface NovaOcorrencia {

@@ -1373,4 +1373,43 @@
         border-color: var(--atrios-dourado);
         font-weight: 700;
     }
+
+    /* ===== Desktop ===== */
+    @media (min-width: 960px) {
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-top: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+        }
+
+        .abas {
+            max-width: 560px;
+        }
+
+        .numeros {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .lista {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .fundo {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .folha {
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            border-radius: var(--raio-lg);
+        }
+    }
 </style>

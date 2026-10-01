@@ -5,7 +5,7 @@ import { exigirEquipe } from "$lib/server/equipe";
 import type { RequestHandler } from "./$types";
 
 interface CorpoStatus {
-  status: "aberta" | "resolvida";
+  status: "aberta" | "em_andamento" | "resolvida";
 }
 
 export const POST: RequestHandler = async ({ request, params }) => {
@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
   await exigirEquipe(claims);
 
   const corpo = (await request.json()) as CorpoStatus;
-  if (corpo.status !== "aberta" && corpo.status !== "resolvida") {
+  if (!["aberta", "em_andamento", "resolvida"].includes(corpo.status)) {
     throw error(400, "status inválido");
   }
 
