@@ -560,6 +560,34 @@
                 {/if}
             </section>
 
+            <section class="cartao">
+                <h2>Comodidades</h2>
+
+                <div class="comodidades-grade">
+                    {#each catalogo as c (c.id)}
+                        <button
+                            type="button"
+                            class="comodidade-opcao"
+                            class:ativa={selecionadas.includes(c.nome)}
+                            onclick={() => alternarComodidade(c.nome)}
+                        >
+                            <span class="comodidade-icone">{@html c.icone}</span
+                            >
+                            <span class="comodidade-texto">{c.nome}</span>
+                        </button>
+                    {/each}
+                </div>
+
+                <label>
+                    Outras comodidades (opcional)
+                    <input
+                        type="text"
+                        bind:value={outras}
+                        placeholder="Separe por vírgula. Ex: piano, vista para o mar"
+                    />
+                </label>
+            </section>
+
             <section class="cartao coluna-direita-inicio">
                 <h2>Dados do imóvel</h2>
 
@@ -640,37 +668,9 @@
                     <textarea bind:value={descricao} rows="4"></textarea>
                 </label>
             </section>
-
-            <section class="cartao">
-                <h2>Comodidades</h2>
-
-                <div class="comodidades-grade">
-                    {#each catalogo as c (c.id)}
-                        <button
-                            type="button"
-                            class="comodidade-opcao"
-                            class:ativa={selecionadas.includes(c.nome)}
-                            onclick={() => alternarComodidade(c.nome)}
-                        >
-                            <span class="comodidade-icone">{@html c.icone}</span
-                            >
-                            <span class="comodidade-texto">{c.nome}</span>
-                        </button>
-                    {/each}
-                </div>
-
-                <label>
-                    Outras comodidades (opcional)
-                    <input
-                        type="text"
-                        bind:value={outras}
-                        placeholder="Separe por vírgula. Ex: piano, vista para o mar"
-                    />
-                </label>
-            </section>
         </div>
 
-        <div class="rodape">
+        <div class="rodape rodape-desktop">
             {#if jaPublicando}
                 <p class="aviso">
                     Aguarde a publicação em andamento terminar para salvar.
@@ -1149,7 +1149,7 @@
         cursor: not-allowed;
     }
 
-    /* ===== Desktop: duas colunas — mídia à esquerda, dados à direita ===== */
+    /* ===== Desktop: duas colunas — mídia + comodidades à esquerda, dados à direita ===== */
     @media (min-width: 960px) {
         .topo {
             max-width: 1100px;
@@ -1171,35 +1171,26 @@
             grid-column: 1 / -1;
         }
 
-        /* Todo .cartao vai para a coluna esquerda por padrão (Fotos, Vídeo, Área comum, Comodidades) */
-        .conteudo-grade > .cartao {
-            grid-column: 1;
-        }
-
-        /* Só "Dados do imóvel" fica na coluna direita */
         .coluna-direita-inicio {
             grid-column: 2;
         }
 
-        /* O rodapé (botão de salvar) fica alinhado à direita, com a largura da coluna direita */
-        .rodape {
+        .rodape-desktop {
             position: static;
             max-width: 1100px;
             margin: 1.2rem auto 0;
             padding: 0;
             background: none;
             box-shadow: none;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
         }
 
-        .rodape > * {
-            width: 100%;
-            max-width: calc(50% - 0.6rem);
+        .rodape-desktop > * {
+            grid-column: 2;
         }
 
-        .rodape .botao-principal {
+        .rodape-desktop .botao-principal {
             box-shadow: 0 4px 16px rgba(31, 42, 38, 0.08);
         }
 
