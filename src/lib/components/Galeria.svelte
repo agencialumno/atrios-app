@@ -309,14 +309,17 @@
 <style>
     .raiz {
         position: relative;
+        overflow: hidden;
     }
 
     .carrossel {
         position: relative;
+        overflow: hidden;
     }
 
     .faixa {
         display: flex;
+        width: 100%;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
@@ -653,10 +656,12 @@
 
         .seta-galeria-esq {
             left: 1rem;
+            top: calc(50% + 20px);
         }
 
         .seta-galeria-dir {
             right: 1rem;
+            top: calc(50% + 20px);
         }
 
         .miniaturas-desktop {
