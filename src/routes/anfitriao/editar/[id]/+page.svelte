@@ -667,6 +667,22 @@
                     Descrição
                     <textarea bind:value={descricao} rows="4"></textarea>
                 </label>
+
+                <div class="botao-desktop">
+                    {#if jaPublicando}
+                        <p class="aviso">
+                            Aguarde a publicação em andamento terminar para
+                            salvar.
+                        </p>
+                    {/if}
+                    <button
+                        class="botao-principal"
+                        onclick={salvar}
+                        disabled={jaPublicando}
+                    >
+                        Salvar alterações
+                    </button>
+                </div>
             </section>
         </div>
 
@@ -1186,27 +1202,25 @@
             grid-row: 2 / span 4;
         }
 
-        .rodape-desktop {
-            position: static;
-            max-width: 1100px;
-            margin: 1.2rem auto 0;
-            padding: 0;
-            background: none;
-            box-shadow: none;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .rodape-desktop > * {
-            grid-column: 2;
-        }
-
-        .rodape-desktop .botao-principal {
-            box-shadow: 0 4px 16px rgba(31, 42, 38, 0.08);
+        /* O rodapé fixo (mobile) some no desktop — o botão agora mora dentro de "Dados do imóvel" */
+        .rodape.rodape-desktop {
+            display: none;
         }
 
         main {
             padding-bottom: 3rem;
+        }
+    }
+
+    /* Botão de salvar embutido no card "Dados do imóvel" — só aparece no desktop */
+    .botao-desktop {
+        display: none;
+    }
+
+    @media (min-width: 960px) {
+        .botao-desktop {
+            display: block;
+            margin-top: 0.3rem;
         }
     }
 </style>
