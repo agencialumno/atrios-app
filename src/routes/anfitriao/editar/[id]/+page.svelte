@@ -11,6 +11,7 @@
         encontrarComodidade,
     } from "$lib/comodidades";
     import Preloader from "$lib/components/Preloader.svelte";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "$lib/styles/theme.css";
 
     interface ImovelApi {
@@ -676,9 +677,6 @@
         </div>
 
         <div class="rodape">
-            {#if erro}
-                <p class="erro">{erro}</p>
-            {/if}
             {#if jaPublicando}
                 <p class="aviso">
                     Aguarde a publicação em andamento terminar para salvar.
@@ -694,6 +692,7 @@
         </div>
     {/if}
 </main>
+<ModalErro mensagem={erro} aoFechar={() => (erro = "")} />
 
 <style>
     main {
