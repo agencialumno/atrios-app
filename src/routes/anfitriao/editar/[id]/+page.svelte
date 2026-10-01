@@ -1168,17 +1168,18 @@
         }
 
         /* Por padrão, todo cartão fica na coluna esquerda (Fotos, Vídeo, Área comum, Comodidades) */
+        /* Por padrão, todo cartão fica na coluna esquerda (Fotos, Vídeo, Área comum, Comodidades) */
         .conteudo-grade > .cartao {
             grid-column: 1;
         }
 
-        /* Só o status ocupa as duas colunas */
-        .status-full {
+        /* Só o status ocupa as duas colunas (mesma especificidade da regra acima: duas classes) */
+        .conteudo-grade > .status-full {
             grid-column: 1 / -1;
         }
 
-        /* Só "Dados do imóvel" vai para a direita */
-        .coluna-direita-inicio {
+        /* Só "Dados do imóvel" vai para a direita (mesma especificidade da regra acima: duas classes) */
+        .conteudo-grade > .coluna-direita-inicio {
             grid-column: 2;
         }
 
