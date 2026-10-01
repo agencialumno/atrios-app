@@ -141,24 +141,24 @@ async function executar() {
       percentual: Math.min(99, ((feito + parcial) / pesoTotal) * 100),
     });
 
+  const PARALELO = 4; // quantas fotos sobem ao mesmo tempo
+
   const subirFotos = async (
     lista: (string | File)[],
     urls: (string | null)[],
     complemento: string,
   ) => {
-    const novas = lista.filter((f) => f instanceof File).length;
+    const pendentes = lista
+      .map((foto, i) => ({ foto, i }))
+      .filter(
+        (item): item is { foto: File; i: number } =>
+          item.foto instanceof File && urls[item.i] === null,
+      );
 
-    for (let i = 0; i < lista.length; i++) {
-      const foto = lista[i];
-      if (!(foto instanceof File) || urls[i] !== null) continue;
+    const novas = pendentes.length;
+    let concluidas = 0;
 
-      const ordem = lista
-        .slice(0, i + 1)
-        .filter((f) => f instanceof File).length;
-      atualizar({
-        mensagem: `Enviando foto ${ordem} de ${novas}${complemento}`,
-      });
-
+    async function enviarUma({ foto, i }: { foto: File; i: number }) {
       let pronta = foto;
       try {
         pronta = await comprimirImagem(foto);
@@ -173,7 +173,17 @@ async function executar() {
       );
       urls[i] = url;
       feito += foto.size;
+      concluidas++;
+      atualizar({
+        mensagem: `Enviando foto ${concluidas} de ${novas}${complemento}`,
+      });
       mostrar();
+    }
+
+    // Processa em lotes de PARALELO, sem disparar tudo de uma vez
+    for (let inicio = 0; inicio < pendentes.length; inicio += PARALELO) {
+      const lote = pendentes.slice(inicio, inicio + PARALELO);
+      await Promise.all(lote.map(enviarUma));
     }
   };
 

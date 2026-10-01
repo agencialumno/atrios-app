@@ -1,7 +1,7 @@
 export async function comprimirImagem(
   arquivo: File,
-  larguraMaxima = 1600,
-  qualidade = 0.8,
+  larguraMaxima = 1280, // era 1600
+  qualidade = 0.75, // era 0.8
 ): Promise<File> {
   return new Promise((resolve, reject) => {
     const leitor = new FileReader();
