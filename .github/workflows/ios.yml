@@ -119,4 +119,16 @@ jobs:
         run: |
           IPA=$(find src-tauri/gen/apple/build -name "*.ipa" | head -n 1)
           echo "Enviando $IPA"
-          xcrun altool --upload-app --type ios --file "$IPA" --apiKey "$APPLE_API_KEY" --apiIssuer "$APPLE_API_ISSUER"
+          TENTATIVAS=5
+          ESPERA=90
+          for i in $(seq 1 $TENTATIVAS); do
+            echo "Tentativa $i de $TENTATIVAS..."
+            if xcrun altool --upload-app --type ios --file "$IPA" --apiKey "$APPLE_API_KEY" --apiIssuer "$APPLE_API_ISSUER"; then
+              echo "Envio concluido com sucesso."
+              exit 0
+            fi
+            echo "Falhou. Aguardando $ESPERA segundos antes de tentar de novo (o certificado recem-criado pode ainda nao ter propagado)..."
+            sleep $ESPERA
+          done
+          echo "Todas as tentativas falharam."
+          exit 1
