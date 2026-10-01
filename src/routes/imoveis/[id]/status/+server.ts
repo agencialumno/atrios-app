@@ -26,9 +26,11 @@ export const POST: RequestHandler = async ({ request, params }) => {
   }
 
   const [imovel] = await sql`
-        update imoveis set status = ${corpo.status} where id = ${params.id}
-        returning id, status
-    `;
+      update imoveis set status = ${corpo.status} where id = ${params.id}
+      returning id, status
+  `;
 
-  return json(imovel);
+  return json(imovel, {
+    headers: { "Cache-Control": "no-store" },
+  });
 };
