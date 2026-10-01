@@ -1183,7 +1183,6 @@
         /* Só "Dados do imóvel" vai para a direita, começando na mesma linha de "Fotos" */
         .conteudo-grade > .coluna-direita-inicio {
             grid-column: 2;
-            grid-row: 2;
         }
 
         .rodape-desktop {
