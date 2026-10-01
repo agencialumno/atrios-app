@@ -11,6 +11,13 @@ jobs:
       APPLE_DEVELOPMENT_TEAM: KH97Q8M556
       APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
       APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
+      # O app mobile não roda nenhuma rota de backend (é estático, fala com a Vercel por HTTP).
+      # Essas variáveis só precisam EXISTIR para o build não falhar ao processar os arquivos
+      # +server.ts do projeto — nunca são usadas de verdade no app instalado.
+      DATABASE_URL: "postgresql://build:build@localhost:5432/build"
+      JWT_SECRET: "valor-fictício-apenas-para-o-build-mobile"
+      STRIPE_SECRET_KEY: "sk_test_build_placeholder"
+      STRIPE_WEBHOOK_SECRET: "whsec_build_placeholder"
     steps:
       - name: Baixar o codigo
         uses: actions/checkout@v4
