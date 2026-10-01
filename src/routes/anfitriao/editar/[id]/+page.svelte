@@ -1167,10 +1167,17 @@
             align-items: start;
         }
 
+        /* Por padrão, todo cartão fica na coluna esquerda (Fotos, Vídeo, Área comum, Comodidades) */
+        .conteudo-grade > .cartao {
+            grid-column: 1;
+        }
+
+        /* Só o status ocupa as duas colunas */
         .status-full {
             grid-column: 1 / -1;
         }
 
+        /* Só "Dados do imóvel" vai para a direita */
         .coluna-direita-inicio {
             grid-column: 2;
         }
