@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { extrairClaims } from "$lib/server/auth";
 import { origemValida, parsearICS } from "$lib/server/ical";
+import { montarResposta } from "$lib/server/calendariosExternos";
 import type { RequestHandler } from "./$types";
 
 async function exigirDonoOuEquipe(imovelId: string, usuarioId: string) {
@@ -17,27 +18,11 @@ async function exigirDonoOuEquipe(imovelId: string, usuarioId: string) {
   }
 }
 
-export const GET: RequestHandler = async ({ request, params }) => {
+export const GET: RequestHandler = async ({ request, params, url }) => {
   const claims = await extrairClaims(request.headers);
   await exigirDonoOuEquipe(params.id, claims.sub);
 
-  const calendarios = await sql`
-        select origem, url, ultima_sincronizacao, ultimo_erro, eventos_importados
-        from calendarios_externos
-        where imovel_id = ${params.id}
-        order by origem
-    `;
-
-  // Garante que o imóvel tenha um token pra exportação, gerando na primeira consulta
-  let [imovel] =
-    await sql`select ical_token from imoveis where id = ${params.id}`;
-  if (!imovel.ical_token) {
-    const token = randomUUID();
-    await sql`update imoveis set ical_token = ${token} where id = ${params.id}`;
-    imovel = { ical_token: token };
-  }
-
-  return json({ calendarios, ical_token: imovel.ical_token });
+  return json(await montarResposta(params.id, url.origin));
 };
 
 interface CorpoConectar {
@@ -57,7 +42,6 @@ export const POST: RequestHandler = async ({ request, params, url }) => {
   if (!corpo.url || !corpo.url.startsWith("http")) {
     throw error(400, "url do calendário inválida");
   }
-  // Só aceita iCal do Airbnb, Booking ou o de demonstração do próprio servidor
   const dominioPermitido =
     corpo.url.includes("airbnb.com") ||
     corpo.url.includes("booking.com") ||
@@ -69,7 +53,6 @@ export const POST: RequestHandler = async ({ request, params, url }) => {
     );
   }
 
-  // Testa a conexão agora, pra já devolver erro claro se a URL não for um .ics válido
   let eventosImportados = 0;
   let ultimoErro: string | null = null;
 
@@ -90,7 +73,6 @@ export const POST: RequestHandler = async ({ request, params, url }) => {
         do update set url = excluded.url, ultima_sincronizacao = now(), ultimo_erro = excluded.ultimo_erro, eventos_importados = excluded.eventos_importados
     `;
 
-  // Já popula os bloqueios dessa origem imediatamente
   if (!ultimoErro) {
     await sql`delete from calendario_bloqueios where imovel_id = ${params.id} and origem = ${corpo.origem}`;
     const resposta = await fetch(corpo.url);
@@ -105,11 +87,5 @@ export const POST: RequestHandler = async ({ request, params, url }) => {
     }
   }
 
-  const [calendario] = await sql`
-        select origem, url, ultima_sincronizacao, ultimo_erro, eventos_importados
-        from calendarios_externos
-        where imovel_id = ${params.id} and origem = ${corpo.origem}
-    `;
-
-  return json(calendario);
+  return json(await montarResposta(params.id, url.origin));
 };

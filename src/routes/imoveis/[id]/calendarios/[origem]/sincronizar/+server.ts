@@ -3,9 +3,10 @@ import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { extrairClaims } from "$lib/server/auth";
 import { parsearICS } from "$lib/server/ical";
+import { montarResposta } from "$lib/server/calendariosExternos";
 import type { RequestHandler } from "./$types";
 
-export const POST: RequestHandler = async ({ request, params }) => {
+export const POST: RequestHandler = async ({ request, params, url }) => {
   const claims = await extrairClaims(request.headers);
 
   const [imovel] =
@@ -45,12 +46,11 @@ export const POST: RequestHandler = async ({ request, params }) => {
       e instanceof Error ? e.message : "falha ao buscar o calendário";
   }
 
-  const [atualizado] = await sql`
+  await sql`
         update calendarios_externos
         set ultima_sincronizacao = now(), ultimo_erro = ${ultimoErro}, eventos_importados = ${eventosImportados}
         where imovel_id = ${params.id} and origem = ${params.origem}
-        returning origem, url, ultima_sincronizacao, ultimo_erro, eventos_importados
     `;
 
-  return json(atualizado);
+  return json(await montarResposta(params.id, url.origin));
 };

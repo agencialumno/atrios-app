@@ -1,9 +1,10 @@
 import { json, error } from "@sveltejs/kit";
 import { sql } from "$lib/server/db";
 import { extrairClaims } from "$lib/server/auth";
+import { montarResposta } from "$lib/server/calendariosExternos";
 import type { RequestHandler } from "./$types";
 
-export const DELETE: RequestHandler = async ({ request, params }) => {
+export const DELETE: RequestHandler = async ({ request, params, url }) => {
   const claims = await extrairClaims(request.headers);
 
   const [imovel] =
@@ -19,5 +20,5 @@ export const DELETE: RequestHandler = async ({ request, params }) => {
   await sql`delete from calendarios_externos where imovel_id = ${params.id} and origem = ${params.origem}`;
   await sql`delete from calendario_bloqueios where imovel_id = ${params.id} and origem = ${params.origem}`;
 
-  return json({ ok: true });
+  return json(await montarResposta(params.id, url.origin));
 };
