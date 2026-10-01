@@ -51,6 +51,16 @@
     let fotos = $derived(imovel ? lerLista(imovel.fotos) : []);
     let areaFotos = $derived(imovel ? lerLista(imovel.area_comum_fotos) : []);
 
+    function fotoAnterior() {
+        if (fotos.length === 0) return;
+        fotoAtiva = fotoAtiva === 0 ? fotos.length - 1 : fotoAtiva - 1;
+    }
+
+    function proximaFoto() {
+        if (fotos.length === 0) return;
+        fotoAtiva = fotoAtiva === fotos.length - 1 ? 0 : fotoAtiva + 1;
+    }
+
     let itensComodidades = $derived(
         lerLista(imovel?.comodidades ?? null)
             .map((texto) => {
@@ -97,6 +107,39 @@
                 <div class="foto-principal">
                     {#if fotos.length > 0}
                         <img src={fotos[fotoAtiva]} alt={imovel.nome} />
+                        {#if fotos.length > 1}
+                            <button
+                                class="seta seta-esq"
+                                onclick={fotoAnterior}
+                                aria-label="Foto anterior"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                >
+                                    <path d="m15 18-6-6 6-6" />
+                                </svg>
+                            </button>
+                            <button
+                                class="seta seta-dir"
+                                onclick={proximaFoto}
+                                aria-label="Próxima foto"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                >
+                                    <path d="m9 18 6-6-6-6" />
+                                </svg>
+                            </button>
+                            <span class="contador-fotos"
+                                >{fotoAtiva + 1} / {fotos.length}</span
+                            >
+                        {/if}
                     {:else}
                         <img
                             src="/atrios-simbolo.png"
@@ -264,10 +307,58 @@
     }
 
     .foto-principal {
+        position: relative;
         border-radius: var(--raio-lg);
         overflow: hidden;
         aspect-ratio: 16 / 9;
         background-color: var(--atrios-creme);
+    }
+
+    .seta {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background-color: rgba(255, 255, 255, 0.85);
+        color: var(--atrios-verde-escuro);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(31, 42, 38, 0.2);
+        transition: background-color 0.2s;
+    }
+
+    .seta:hover {
+        background-color: var(--atrios-branco);
+    }
+
+    .seta svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .seta-esq {
+        left: 1rem;
+    }
+
+    .seta-dir {
+        right: 1rem;
+    }
+
+    .contador-fotos {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: var(--raio-pill);
+        background-color: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
 
     .foto-principal img {
