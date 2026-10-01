@@ -9,7 +9,6 @@ jobs:
     timeout-minutes: 60
     env:
       APPLE_DEVELOPMENT_TEAM: KH97Q8M556
-      VITE_API_URL: https://victor.taile271e6.ts.net
       APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
       APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
     steps:
