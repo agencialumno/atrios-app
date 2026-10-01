@@ -106,10 +106,10 @@ jobs:
             fi
           done
 
-           - name: Compilar o app
-             env:
-               CODE_SIGN_IDENTITY: "Apple Distribution: Lumno Agencia de Marketing LTDA"
-             run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }}
+      - name: Compilar o app
+        env:
+          CODE_SIGN_IDENTITY: "Apple Distribution: Lumno Agencia de Marketing LTDA"
+        run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }}
 
       - name: Guardar o arquivo .ipa
         uses: actions/upload-artifact@v4
