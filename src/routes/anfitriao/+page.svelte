@@ -222,48 +222,50 @@
         </div>
 
         {#if aba === "resumo"}
-            <section class="cartao-destaque">
-                <p class="destaque-rotulo">
-                    Receita líquida · {formatarMes(
-                        painel.resumo.mes_referencia,
-                    )}
-                </p>
-                <p class="destaque-valor">
-                    {formatarReais(painel.resumo.receita_mes)}
-                </p>
-                <p class="destaque-nota">
-                    Depois da comissão de {painel.comissao_percentual.toFixed(
-                        0,
-                    )}% da Átrios
-                </p>
-            </section>
+            <div class="grade-resumo">
+                <section class="cartao-destaque">
+                    <p class="destaque-rotulo">
+                        Receita líquida · {formatarMes(
+                            painel.resumo.mes_referencia,
+                        )}
+                    </p>
+                    <p class="destaque-valor">
+                        {formatarReais(painel.resumo.receita_mes)}
+                    </p>
+                    <p class="destaque-nota">
+                        Depois da comissão de {painel.comissao_percentual.toFixed(
+                            0,
+                        )}% da Átrios
+                    </p>
+                </section>
 
-            <div class="numeros">
-                <div class="numero">
-                    <span class="numero-valor"
-                        >{painel.resumo.reservas_mes}</span
-                    >
-                    <span class="numero-rotulo">
-                        {painel.resumo.reservas_mes === 1
-                            ? "reserva no mês"
-                            : "reservas no mês"}
-                    </span>
-                </div>
-                <div class="numero">
-                    <span class="numero-valor"
-                        >{painel.resumo.ocupacao_30_dias.toFixed(0)}%</span
-                    >
-                    <span class="numero-rotulo">ocupação, 30 dias</span>
-                </div>
-                <div class="numero">
-                    <span class="numero-valor"
-                        >{painel.resumo.imoveis_ativos}</span
-                    >
-                    <span class="numero-rotulo">
-                        {painel.resumo.imoveis_ativos === 1
-                            ? "imóvel ativo"
-                            : "imóveis ativos"}
-                    </span>
+                <div class="numeros">
+                    <div class="numero">
+                        <span class="numero-valor"
+                            >{painel.resumo.reservas_mes}</span
+                        >
+                        <span class="numero-rotulo">
+                            {painel.resumo.reservas_mes === 1
+                                ? "reserva no mês"
+                                : "reservas no mês"}
+                        </span>
+                    </div>
+                    <div class="numero">
+                        <span class="numero-valor"
+                            >{painel.resumo.ocupacao_30_dias.toFixed(0)}%</span
+                        >
+                        <span class="numero-rotulo">ocupação, 30 dias</span>
+                    </div>
+                    <div class="numero">
+                        <span class="numero-valor"
+                            >{painel.resumo.imoveis_ativos}</span
+                        >
+                        <span class="numero-rotulo">
+                            {painel.resumo.imoveis_ativos === 1
+                                ? "imóvel ativo"
+                                : "imóveis ativos"}
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -275,7 +277,7 @@
                         Nenhuma chegada agendada por enquanto.
                     </p>
                 {:else}
-                    <div class="lista">
+                    <div class="lista lista-chegadas">
                         {#each painel.resumo.proximas_chegadas as r (r.id)}
                             <div class="chegada">
                                 <div class="data-caixa">
@@ -322,7 +324,7 @@
                     </button>
                 </div>
             {:else}
-                <div class="lista">
+                <div class="lista lista-imoveis">
                     {#each painel.imoveis as i (i.id)}
                         <article
                             class="card-imovel"
@@ -404,7 +406,7 @@
             {:else}
                 {#if proximas.length > 0}
                     <h2>Próximas</h2>
-                    <div class="lista">
+                    <div class="lista lista-reservas">
                         {#each proximas as r (r.id)}
                             {@const sit = situacao(r)}
                             <article class="card-reserva">
@@ -448,7 +450,7 @@
 
                 {#if anteriores.length > 0}
                     <h2 class="titulo-secao">Anteriores</h2>
-                    <div class="lista">
+                    <div class="lista lista-reservas">
                         {#each anteriores as r (r.id)}
                             {@const sit = situacao(r)}
                             <article
@@ -523,57 +525,65 @@
                 </div>
 
                 {#if mesAtivo}
-                    <section class="cartao-extrato">
-                        <p class="extrato-titulo">{formatarMes(mesAtivo)}</p>
+                    <div class="grade-extrato">
+                        <section class="cartao-extrato">
+                            <p class="extrato-titulo">
+                                {formatarMes(mesAtivo)}
+                            </p>
 
-                        <div class="extrato-linha">
-                            <span>Valor das reservas</span>
-                            <span>{formatarReais(totais.bruto)}</span>
-                        </div>
-                        <div class="extrato-linha">
-                            <span
-                                >Comissão Átrios ({painel.comissao_percentual.toFixed(
-                                    0,
-                                )}%)</span
-                            >
-                            <span class="negativo"
-                                >− {formatarReais(totais.comissao)}</span
-                            >
-                        </div>
-                        <div class="extrato-linha total">
-                            <span>Você recebe</span>
-                            <span>{formatarReais(totais.liquido)}</span>
-                        </div>
-                    </section>
-
-                    <h2>Reservas do mês</h2>
-                    <div class="lista">
-                        {#each doMes as r (r.id)}
-                            <div class="linha-extrato">
-                                <div class="linha-extrato-textos">
-                                    <p class="reserva-imovel">
-                                        {r.imovel_nome}
-                                    </p>
-                                    <p class="reserva-hospede">
-                                        {r.hospede_nome} · {formatarCurta(
-                                            r.data_checkin,
-                                        )} → {formatarCurta(r.data_checkout)}
-                                    </p>
-                                </div>
-                                <div class="linha-extrato-valores">
-                                    <strong
-                                        >{formatarReais(
-                                            r.valor_liquido,
-                                        )}</strong
-                                    >
-                                    <span
-                                        >bruto {formatarReais(
-                                            r.valor_bruto,
-                                        )}</span
-                                    >
-                                </div>
+                            <div class="extrato-linha">
+                                <span>Valor das reservas</span>
+                                <span>{formatarReais(totais.bruto)}</span>
                             </div>
-                        {/each}
+                            <div class="extrato-linha">
+                                <span
+                                    >Comissão Átrios ({painel.comissao_percentual.toFixed(
+                                        0,
+                                    )}%)</span
+                                >
+                                <span class="negativo"
+                                    >− {formatarReais(totais.comissao)}</span
+                                >
+                            </div>
+                            <div class="extrato-linha total">
+                                <span>Você recebe</span>
+                                <span>{formatarReais(totais.liquido)}</span>
+                            </div>
+                        </section>
+
+                        <div class="extrato-lista-wrapper">
+                            <h2>Reservas do mês</h2>
+                            <div class="lista">
+                                {#each doMes as r (r.id)}
+                                    <div class="linha-extrato">
+                                        <div class="linha-extrato-textos">
+                                            <p class="reserva-imovel">
+                                                {r.imovel_nome}
+                                            </p>
+                                            <p class="reserva-hospede">
+                                                {r.hospede_nome} · {formatarCurta(
+                                                    r.data_checkin,
+                                                )} → {formatarCurta(
+                                                    r.data_checkout,
+                                                )}
+                                            </p>
+                                        </div>
+                                        <div class="linha-extrato-valores">
+                                            <strong
+                                                >{formatarReais(
+                                                    r.valor_liquido,
+                                                )}</strong
+                                            >
+                                            <span
+                                                >bruto {formatarReais(
+                                                    r.valor_bruto,
+                                                )}</span
+                                            >
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
                     </div>
 
                     <p class="rodape-nota">
@@ -735,6 +745,7 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 0.6rem;
         margin-bottom: 1.5rem;
+        margin-top: 1rem;
     }
 
     .numero {
@@ -1203,5 +1214,92 @@
         line-height: 1.45;
         color: var(--cor-texto);
         opacity: 0.65;
+    }
+
+    /* ===== Desktop ===== */
+    @media (min-width: 960px) {
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-top: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+        }
+
+        .abas {
+            max-width: 480px;
+        }
+
+        /* Resumo: cartão de destaque + números lado a lado */
+        .grade-resumo {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1.5rem;
+            align-items: stretch;
+        }
+
+        .cartao-destaque {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .numeros {
+            grid-template-columns: repeat(3, 1fr);
+            margin: 0;
+            height: 100%;
+        }
+
+        .numero {
+            justify-content: center;
+        }
+
+        .lista-chegadas {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        /* Imóveis: grade de cards */
+        .lista-imoveis {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+        }
+
+        .card-imovel {
+            height: 100%;
+        }
+
+        /* Reservas: grade de cards */
+        .lista-reservas {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        /* Extrato: resumo à esquerda, lista à direita */
+        .meses {
+            margin: 0 0 1.1rem;
+            padding: 0;
+        }
+
+        .grade-extrato {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .cartao-extrato {
+            position: sticky;
+            top: 90px;
+        }
+
+        .extrato-lista-wrapper .lista {
+            gap: 0.6rem;
+        }
     }
 </style>
