@@ -70,6 +70,15 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
           rm -f "$RUNNER_TEMP/distribuicao.p12"
 
+      - name: Instalar o provisioning profile
+        env:
+          PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$PROFILE_BASE64" | base64 -d > "$HOME/Library/MobileDevice/Provisioning Profiles/atrios.mobileprovision"
+          echo "Profile instalado:"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles"
+
       - name: Preparar a chave da App Store Connect
         env:
           CHAVE_P8: ${{ secrets.APPLE_API_KEY_P8 }}
