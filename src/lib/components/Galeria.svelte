@@ -669,6 +669,7 @@
             gap: 0.6rem;
             margin-top: 0.7rem;
             overflow-x: auto;
+            min-width: 0;
         }
 
         .miniatura-desktop {

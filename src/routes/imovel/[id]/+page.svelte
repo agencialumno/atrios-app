@@ -781,6 +781,10 @@
             align-items: start;
         }
 
+        .coluna-galeria {
+            min-width: 0;
+        }
+
         .coluna-galeria .galeria {
             border-radius: var(--raio-lg);
             overflow: hidden;
