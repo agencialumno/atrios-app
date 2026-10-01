@@ -69,6 +69,10 @@
 
     let todosImoveis = $state<Imovel[]>([]);
 
+    // Duplicamos a lista para o efeito de rolagem infinita: quando a primeira
+    // cópia termina de sair da tela, a segunda já está ocupando o lugar dela
+    let imoveisDuplicados = $derived([...todosImoveis, ...todosImoveis]);
+
     onMount(async () => {
         try {
             todosImoveis = await api<Imovel[]>("/imoveis");
@@ -158,7 +162,7 @@
     {#if todosImoveis.length > 0}
         <section class="galeria-rolante">
             <div class="galeria-trilho">
-                {#each todosImoveis as im (im.id)}
+                {#each imoveisDuplicados as im, i (i)}
                     {@const foto = lerPrimeiraFoto(im.fotos)}
                     <a href="/imoveis-site/{im.id}" class="galeria-card">
                         <div class="galeria-foto">
@@ -784,27 +788,32 @@
         padding: 3.5rem 2.5rem 1rem;
     }
 
+    .galeria-rolante {
+        overflow: hidden;
+    }
+
     .galeria-trilho {
         display: flex;
         gap: 1.3rem;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: thin;
+        width: max-content;
+        animation: rolar-galeria 40s linear infinite;
     }
 
-    .galeria-trilho::-webkit-scrollbar {
-        height: 6px;
+    .galeria-rolante:hover .galeria-trilho {
+        animation-play-state: paused;
     }
 
-    .galeria-trilho::-webkit-scrollbar-thumb {
-        background-color: var(--atrios-dourado);
-        border-radius: 999px;
+    @keyframes rolar-galeria {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-50%);
+        }
     }
 
     .galeria-card {
         flex: 0 0 260px;
-        scroll-snap-align: start;
         display: block;
         text-decoration: none;
         color: var(--cor-texto);
