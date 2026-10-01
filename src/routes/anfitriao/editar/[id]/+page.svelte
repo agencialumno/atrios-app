@@ -1163,6 +1163,7 @@
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
+            grid-auto-flow: dense;
             gap: 1.2rem;
             align-items: start;
         }
