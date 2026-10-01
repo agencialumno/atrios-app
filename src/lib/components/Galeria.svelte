@@ -26,6 +26,7 @@
     } = $props();
 
     let indice = $state(0);
+    let faixaEl: HTMLElement | undefined;
     let visorAberto = $state(false);
     let inicioVisor = $state(0);
     let indiceVisor = $state(0);
@@ -40,6 +41,19 @@
     function aoRolar(e: Event) {
         const el = e.currentTarget as HTMLElement;
         indice = Math.round(el.scrollLeft / el.clientWidth);
+    }
+
+    function irPara(i: number) {
+        if (!faixaEl) return;
+        faixaEl.scrollTo({ left: i * faixaEl.clientWidth, behavior: "smooth" });
+    }
+
+    function voltarFoto() {
+        irPara(indice === 0 ? fotos.length - 1 : indice - 1);
+    }
+
+    function proximaFoto() {
+        irPara(indice === fotos.length - 1 ? 0 : indice + 1);
     }
 
     function aoRolarVisor(e: Event) {
@@ -115,7 +129,7 @@
         </div>
     {:else}
         <div class="carrossel">
-            <div class="faixa" onscroll={aoRolar}>
+            <div class="faixa" onscroll={aoRolar} bind:this={faixaEl}>
                 {#each fotos as foto, i (foto + i)}
                     <button
                         class="slide"
@@ -134,8 +148,51 @@
 
             {#if fotos.length > 1}
                 <span class="contador">{indice + 1}/{fotos.length}</span>
+
+                <button
+                    class="seta-galeria seta-galeria-esq"
+                    onclick={voltarFoto}
+                    aria-label="Foto anterior"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                    >
+                        <path d="m15 18-6-6 6-6" />
+                    </svg>
+                </button>
+                <button
+                    class="seta-galeria seta-galeria-dir"
+                    onclick={proximaFoto}
+                    aria-label="Próxima foto"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                    >
+                        <path d="m9 18 6-6-6-6" />
+                    </svg>
+                </button>
             {/if}
         </div>
+
+        {#if fotos.length > 1}
+            <div class="miniaturas-desktop">
+                {#each fotos as foto, i (foto + i)}
+                    <button
+                        class="miniatura-desktop"
+                        class:ativa={i === indice}
+                        onclick={() => irPara(i)}
+                    >
+                        <img src={foto} alt="Miniatura {i + 1}" />
+                    </button>
+                {/each}
+            </div>
+        {/if}
     {/if}
 </div>
 
@@ -554,5 +611,81 @@
         font-weight: 700;
         font-size: 0.9rem;
         cursor: pointer;
+    }
+
+    /* Setas e miniaturas: só aparecem no desktop. No mobile, o swipe nativo já resolve */
+    .seta-galeria {
+        display: none;
+    }
+
+    .miniaturas-desktop {
+        display: none;
+    }
+
+    @media (min-width: 960px) {
+        .seta-galeria {
+            display: flex;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.85);
+            color: var(--atrios-verde-escuro);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(31, 42, 38, 0.2);
+            z-index: 2;
+            transition: background-color 0.2s;
+        }
+
+        .seta-galeria:hover {
+            background-color: var(--atrios-branco);
+        }
+
+        .seta-galeria svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .seta-galeria-esq {
+            left: 1rem;
+        }
+
+        .seta-galeria-dir {
+            right: 1rem;
+        }
+
+        .miniaturas-desktop {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.7rem;
+            overflow-x: auto;
+        }
+
+        .miniatura-desktop {
+            flex-shrink: 0;
+            width: 90px;
+            height: 65px;
+            padding: 0;
+            border: 2px solid transparent;
+            border-radius: var(--raio-sm);
+            overflow: hidden;
+            cursor: pointer;
+            background: none;
+        }
+
+        .miniatura-desktop.ativa {
+            border-color: var(--atrios-dourado);
+        }
+
+        .miniatura-desktop img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     }
 </style>
