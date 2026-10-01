@@ -26,6 +26,7 @@
         </nav>
 
         <div class="acoes">
+            <a href="/login" class="botao-cliente">Já sou cliente</a>
             <a href="/contato" class="botao-cta">Fale Conosco</a>
             <button
                 class="botao-menu"
@@ -46,6 +47,13 @@
                     >{l.rotulo}</a
                 >
             {/each}
+            <a
+                href="/login"
+                class="link-cliente-mobile"
+                onclick={() => (menuAberto = false)}
+            >
+                Já sou cliente
+            </a>
         </nav>
     {/if}
 </header>
@@ -117,6 +125,37 @@
         white-space: nowrap;
     }
 
+    .botao-cliente {
+        display: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: var(--raio-pill);
+        border: 1.5px solid var(--cor-texto);
+        color: var(--cor-texto);
+        font-family: var(--fonte-corpo);
+        font-weight: 700;
+        font-size: 0.88rem;
+        text-decoration: none;
+        white-space: nowrap;
+        transition:
+            background-color 0.2s,
+            color 0.2s;
+    }
+
+    .botao-cliente:hover {
+        background-color: var(--cor-texto);
+        color: var(--atrios-creme);
+    }
+
+    .link-cliente-mobile {
+        margin-top: 0.4rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid rgba(31, 42, 38, 0.1);
+        font-family: var(--fonte-corpo);
+        font-weight: 700;
+        color: var(--atrios-dourado);
+        text-decoration: none;
+    }
+
     .botao-menu {
         width: 40px;
         height: 40px;
@@ -155,7 +194,8 @@
 
     @media (min-width: 960px) {
         .nav-desktop,
-        .botao-cta {
+        .botao-cta,
+        .botao-cliente {
             display: flex;
         }
 
