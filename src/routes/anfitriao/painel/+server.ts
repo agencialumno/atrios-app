@@ -157,17 +157,22 @@ export const GET: RequestHandler = async ({ request }) => {
     .sort((a, b) => a.data_checkin.localeCompare(b.data_checkin))
     .slice(0, 5);
 
-  return json({
-    comissao_percentual: COMISSAO_ATRIOS * 100,
-    resumo: {
-      mes_referencia: mesAtual,
-      receita_mes: receitaMes,
-      reservas_mes: reservasDoMes.length,
-      ocupacao_30_dias: ocupacaoGeral,
-      imoveis_ativos: imoveisAtivos.length,
-      proximas_chegadas: proximasChegadas,
+  return json(
+    {
+      comissao_percentual: COMISSAO_ATRIOS * 100,
+      resumo: {
+        mes_referencia: mesAtual,
+        receita_mes: receitaMes,
+        reservas_mes: reservasDoMes.length,
+        ocupacao_30_dias: ocupacaoGeral,
+        imoveis_ativos: imoveisAtivos.length,
+        proximas_chegadas: proximasChegadas,
+      },
+      imoveis,
+      reservas,
     },
-    imoveis,
-    reservas,
-  });
+    {
+      headers: { "Cache-Control": "no-store" },
+    },
+  );
 };
