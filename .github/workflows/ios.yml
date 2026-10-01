@@ -142,6 +142,22 @@ jobs:
           PLIST_EOF
           xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "src-tauri/gen/apple/build/export-manual" -exportOptionsPlist "$RUNNER_TEMP/exportOptions.plist" -allowProvisioningUpdates
 
+      - name: Verificar a assinatura do .ipa antes de enviar
+        run: |
+          IPA=$(find src-tauri/gen/apple/build/export-manual -name "*.ipa" | head -n 1)
+          echo "Extraindo $IPA para inspecionar..."
+          TEMP_DIR=$(mktemp -d)
+          unzip -q "$IPA" -d "$TEMP_DIR"
+          APP_PATH=$(find "$TEMP_DIR" -name "*.app" | head -n 1)
+          echo "=== codesign --verify --deep --strict ==="
+          codesign --verify --deep --strict --verbose=4 "$APP_PATH" || echo "FALHOU na verificacao"
+          echo "=== codesign -dvvv (detalhes da assinatura) ==="
+          codesign -dvvv "$APP_PATH" 2>&1
+          echo "=== Entitlements embutidos ==="
+          codesign -d --entitlements :- "$APP_PATH" 2>&1
+          echo "=== Provisioning profile embutido ==="
+          security cms -D -i "$APP_PATH/embedded.mobileprovision" 2>&1 | head -50
+
       - name: Guardar o arquivo .ipa
         uses: actions/upload-artifact@v4
         with:
