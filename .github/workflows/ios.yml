@@ -149,6 +149,9 @@ jobs:
           path: src-tauri/gen/apple/build/**/*.ipa
 
       - name: Enviar ao App Store Connect
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
           IPA=$(find src-tauri/gen/apple/build/export-manual -name "*.ipa" | head -n 1)
           echo "Enviando $IPA"
@@ -156,7 +159,7 @@ jobs:
           ESPERA=90
           for i in $(seq 1 $TENTATIVAS); do
             echo "Tentativa $i de $TENTATIVAS..."
-            if xcrun altool --upload-app --type ios --file "$IPA" --apiKey "$APPLE_API_KEY" --apiIssuer "$APPLE_API_ISSUER"; then
+            if xcrun altool --upload-app --type ios --file "$IPA" -u "$APPLE_ID" -p "$APPLE_APP_PASSWORD"; then
               echo "Envio concluido com sucesso."
               exit 0
             fi
