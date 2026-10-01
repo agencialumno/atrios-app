@@ -11,9 +11,6 @@ jobs:
       APPLE_DEVELOPMENT_TEAM: KH97Q8M556
       APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
       APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
-      # O app mobile não roda nenhuma rota de backend (é estático, fala com a Vercel por HTTP).
-      # Essas variáveis só precisam EXISTIR para o build não falhar ao processar os arquivos
-      # +server.ts do projeto — nunca são usadas de verdade no app instalado.
       DATABASE_URL: "postgresql://build:build@localhost:5432/build"
       JWT_SECRET: "valor-fictício-apenas-para-o-build-mobile"
       STRIPE_SECRET_KEY: "sk_test_build_placeholder"
@@ -106,10 +103,35 @@ jobs:
             fi
           done
 
-      - name: Compilar o app
-        env:
-          CODE_SIGN_IDENTITY: "Apple Distribution: Lumno Agencia de Marketing LTDA"
-        run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }}
+      - name: Compilar o app (gera apenas o xcarchive)
+        run: bun run tauri ios build --export-method app-store-connect --build-number ${{ github.run_number }} || true
+
+      - name: Exportar o .ipa manualmente com assinatura explicita
+        run: |
+          ARCHIVE=$(find src-tauri/gen/apple/build -name "*.xcarchive" | head -n 1)
+          echo "Archive encontrado: $ARCHIVE"
+          cat > "$RUNNER_TEMP/exportOptions.plist" << 'PLIST_EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store-connect</string>
+              <key>teamID</key>
+              <string>KH97Q8M556</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>signingCertificate</key>
+              <string>Apple Distribution</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.agencialumno.atrios</key>
+                  <string>Atrios App Store</string>
+              </dict>
+          </dict>
+          </plist>
+          PLIST_EOF
+          xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "src-tauri/gen/apple/build/export-manual" -exportOptionsPlist "$RUNNER_TEMP/exportOptions.plist" -allowProvisioningUpdates
 
       - name: Guardar o arquivo .ipa
         uses: actions/upload-artifact@v4
@@ -119,7 +141,7 @@ jobs:
 
       - name: Enviar ao App Store Connect
         run: |
-          IPA=$(find src-tauri/gen/apple/build -name "*.ipa" | head -n 1)
+          IPA=$(find src-tauri/gen/apple/build/export-manual -name "*.ipa" | head -n 1)
           echo "Enviando $IPA"
           TENTATIVAS=5
           ESPERA=90
@@ -129,7 +151,7 @@ jobs:
               echo "Envio concluido com sucesso."
               exit 0
             fi
-            echo "Falhou. Aguardando $ESPERA segundos antes de tentar de novo (o certificado recem-criado pode ainda nao ter propagado)..."
+            echo "Falhou. Aguardando $ESPERA segundos antes de tentar de novo..."
             sleep $ESPERA
           done
           echo "Todas as tentativas falharam."
