@@ -7,6 +7,7 @@
     import { diferencaDias, formatarCurta, formatarReais } from "$lib/datas";
     import Preloader from "$lib/components/Preloader.svelte";
     import ModalErro from "$lib/components/ModalErro.svelte";
+    import LinkCheckin from "$lib/components/LinkCheckin.svelte";
     import "../../../../lib/styles/theme.css";
 
     interface ReservaDetalhada {
@@ -23,6 +24,7 @@
         reembolsada: boolean;
         imovel_nome: string;
         imovel_cidade: string;
+        checkin_token: string | null;
     }
 
     let reserva = $state<ReservaDetalhada | null>(null);
@@ -207,6 +209,12 @@
                     >
                 </div>
             </div>
+
+            {#if reserva.checkin_token && reserva.status === "confirmada"}
+                <div class="link-checkin-wrapper">
+                    <LinkCheckin token={reserva.checkin_token} />
+                </div>
+            {/if}
 
             <button class="botao-principal" onclick={() => goto("/reservas")}
                 >Ver minhas reservas</button
@@ -640,6 +648,11 @@
     .marca.alerta {
         background-color: #f4dedb;
         color: #b23a2f;
+    }
+
+    .link-checkin-wrapper {
+        width: 100%;
+        max-width: 320px;
     }
 
     .resumo {

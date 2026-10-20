@@ -1,4 +1,5 @@
 import { json, error } from "@sveltejs/kit";
+import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { extrairClaims } from "$lib/server/auth";
 import { reconciliar } from "$lib/server/pagamentos";
@@ -16,11 +17,17 @@ export const GET: RequestHandler = async ({ request, params }) => {
 
   await reconciliar(params.id);
 
+  // Reservas confirmadas antes do guia existir ganham o link na primeira consulta
+  await sql`
+        update reservas set checkin_token = ${randomUUID()}
+        where id = ${params.id} and checkin_token is null and status in ('confirmada', 'concluida')
+    `;
+
   const [reserva] = await sql`
         select
             r.id, r.imovel_id, r.data_checkin, r.data_checkout, r.num_hospedes,
             r.valor_total, r.status, r.criado_em,
-            r.expira_em, r.motivo_cancelamento,
+            r.expira_em, r.motivo_cancelamento, r.checkin_token,
             (r.pagamento_id is not null) as pago,
             (r.reembolso_id is not null) as reembolsada,
             i.nome as imovel_nome,

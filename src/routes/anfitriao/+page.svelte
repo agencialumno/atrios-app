@@ -13,6 +13,7 @@
         mesAbreviado,
     } from "$lib/datas";
     import Preloader from "$lib/components/Preloader.svelte";
+    import LinkCheckin from "$lib/components/LinkCheckin.svelte";
     import "../../lib/styles/theme.css";
 
     interface ReservaRecebida {
@@ -28,6 +29,7 @@
         valor_bruto: number;
         comissao: number;
         valor_liquido: number;
+        checkin_token: string | null;
     }
 
     interface ImovelAnfitriao {
@@ -443,6 +445,9 @@
                                         <span>a receber</span>
                                     </div>
                                 </div>
+                                {#if r.checkin_token && r.status === "confirmada"}
+                                    <LinkCheckin token={r.checkin_token} />
+                                {/if}
                             </article>
                         {/each}
                     </div>

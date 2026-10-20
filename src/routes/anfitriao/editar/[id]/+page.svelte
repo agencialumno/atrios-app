@@ -69,6 +69,86 @@
     let areaVideoNovo = $state<File | null>(null);
     let areaAlterada = $state(false);
 
+    interface GuiaForm {
+        acesso: string;
+        estacionamento: { custo: string; instrucoes: string };
+        piscina: { horario: string; regras: string };
+        academia: { andar: string; horario: string; regras: string };
+        area_gourmet: { preco: string; como_reservar: string };
+        lavanderia: { preco_lavar: string; preco_secar: string };
+        restaurante: { descricao: string };
+        bagagem: {
+            tem_maleiro: boolean;
+            lockers_disponiveis: number | null;
+            observacao: string;
+        };
+    }
+
+    function guiaVazio(): GuiaForm {
+        return {
+            acesso: "",
+            estacionamento: { custo: "", instrucoes: "" },
+            piscina: { horario: "", regras: "" },
+            academia: { andar: "", horario: "", regras: "" },
+            area_gourmet: { preco: "", como_reservar: "" },
+            lavanderia: { preco_lavar: "", preco_secar: "" },
+            restaurante: { descricao: "" },
+            bagagem: {
+                tem_maleiro: false,
+                lockers_disponiveis: null,
+                observacao: "",
+            },
+        };
+    }
+
+    let guia = $state<GuiaForm>(guiaVazio());
+    let salvandoGuia = $state(false);
+    let guiaSalvo = $state(false);
+
+    async function carregarGuia() {
+        try {
+            const salvo = await api<Partial<GuiaForm> | null>(
+                `/imoveis/${idImovel}/guia`,
+                { autenticado: true },
+            );
+            if (salvo) {
+                const base = guiaVazio();
+                guia = {
+                    acesso: salvo.acesso ?? "",
+                    estacionamento: { ...base.estacionamento, ...salvo.estacionamento },
+                    piscina: { ...base.piscina, ...salvo.piscina },
+                    academia: { ...base.academia, ...salvo.academia },
+                    area_gourmet: { ...base.area_gourmet, ...salvo.area_gourmet },
+                    lavanderia: { ...base.lavanderia, ...salvo.lavanderia },
+                    restaurante: { ...base.restaurante, ...salvo.restaurante },
+                    bagagem: { ...base.bagagem, ...salvo.bagagem },
+                };
+            }
+        } catch {
+            // sem guia ainda (ou sem permissão): o formulário começa vazio
+        }
+    }
+
+    async function salvarGuia() {
+        salvandoGuia = true;
+        guiaSalvo = false;
+        try {
+            await api(`/imoveis/${idImovel}/guia`, {
+                method: "PUT",
+                autenticado: true,
+                body: guia,
+            });
+            guiaSalvo = true;
+        } catch (e) {
+            erro =
+                e instanceof Error
+                    ? e.message
+                    : "Não foi possível salvar o guia";
+        } finally {
+            salvandoGuia = false;
+        }
+    }
+
     let erro = $state("");
     let alterandoStatus = $state(false);
 
@@ -104,6 +184,7 @@
         try {
             const dados = await api<ImovelApi>(`/imoveis/${idImovel}`);
             imovel = dados;
+            carregarGuia();
 
             nome = dados.nome;
             endereco = dados.endereco;
@@ -588,6 +669,113 @@
                 </label>
             </section>
 
+            <section class="cartao">
+                <h2>Guia do hóspede</h2>
+                <p class="ajuda">
+                    Aparece na página de check-in que o hóspede recebe. Seções
+                    em branco ficam escondidas.
+                </p>
+
+                <label>
+                    Informações de acesso
+                    <textarea
+                        bind:value={guia.acesso}
+                        rows="3"
+                        placeholder="Como chegar, portaria, senha da porta, andar do apartamento..."
+                    ></textarea>
+                </label>
+
+                <span class="rotulo-secao">Estacionamento</span>
+                <label>
+                    Custo
+                    <input type="text" bind:value={guia.estacionamento.custo} placeholder="Ex: R$ 40 por dia" />
+                </label>
+                <label>
+                    Como entrar
+                    <textarea bind:value={guia.estacionamento.instrucoes} rows="2"></textarea>
+                </label>
+
+                <span class="rotulo-secao">Piscina</span>
+                <label>
+                    Horário
+                    <input type="text" bind:value={guia.piscina.horario} placeholder="Ex: 8h às 22h" />
+                </label>
+                <label>
+                    Regras
+                    <textarea bind:value={guia.piscina.regras} rows="2"></textarea>
+                </label>
+
+                <span class="rotulo-secao">Academia</span>
+                <div class="linha">
+                    <label>
+                        Andar
+                        <input type="text" bind:value={guia.academia.andar} />
+                    </label>
+                    <label>
+                        Horário
+                        <input type="text" bind:value={guia.academia.horario} />
+                    </label>
+                </div>
+                <label>
+                    Regras
+                    <textarea bind:value={guia.academia.regras} rows="2"></textarea>
+                </label>
+
+                <span class="rotulo-secao">Área gourmet</span>
+                <label>
+                    Preço
+                    <input type="text" bind:value={guia.area_gourmet.preco} placeholder="Ex: R$ 350 por evento" />
+                </label>
+                <label>
+                    Como reservar
+                    <textarea bind:value={guia.area_gourmet.como_reservar} rows="2"></textarea>
+                </label>
+
+                <span class="rotulo-secao">Lavanderia</span>
+                <div class="linha">
+                    <label>
+                        Preço para lavar
+                        <input type="text" bind:value={guia.lavanderia.preco_lavar} />
+                    </label>
+                    <label>
+                        Preço para secar
+                        <input type="text" bind:value={guia.lavanderia.preco_secar} />
+                    </label>
+                </div>
+
+                <span class="rotulo-secao">Restaurante</span>
+                <label>
+                    Descrição
+                    <textarea bind:value={guia.restaurante.descricao} rows="2" placeholder="Restaurante, frigobar, minibares..."></textarea>
+                </label>
+
+                <span class="rotulo-secao">Bagagem e lockers</span>
+                <label class="caixa">
+                    <input type="checkbox" bind:checked={guia.bagagem.tem_maleiro} />
+                    O condomínio tem maleiro
+                </label>
+                <label>
+                    Lockers disponíveis
+                    <input type="number" min="0" bind:value={guia.bagagem.lockers_disponiveis} />
+                </label>
+                <label>
+                    Observação
+                    <textarea bind:value={guia.bagagem.observacao} rows="2"></textarea>
+                </label>
+
+                <button
+                    type="button"
+                    class="botao-principal"
+                    onclick={salvarGuia}
+                    disabled={salvandoGuia}
+                >
+                    {salvandoGuia ? "Salvando..." : "Salvar guia"}
+                </button>
+                {#if guiaSalvo}
+                    <p class="dica">Guia salvo.</p>
+                {/if}
+            </section>
+
             <section class="cartao coluna-direita-inicio">
                 <h2>Dados do imóvel</h2>
 
@@ -1025,6 +1213,16 @@
         resize: vertical;
     }
 
+    .caixa {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .caixa input {
+        width: auto;
+    }
+
     .linha {
         display: flex;
         gap: 0.5rem;
@@ -1199,7 +1397,7 @@
            (mesmo número de cards da esquerda), em vez de forçar uma linha só a ficar gigante */
         .conteudo-grade > .coluna-direita-inicio {
             grid-column: 2;
-            grid-row: 2 / span 4;
+            grid-row: 2 / span 5;
         }
 
         /* O rodapé fixo (mobile) some no desktop — o botão agora mora dentro de "Dados do imóvel" */

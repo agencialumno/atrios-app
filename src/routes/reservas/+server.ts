@@ -82,11 +82,12 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
   await sql.begin(async (tx) => {
     await tx`
-            insert into reservas (id, imovel_id, hospede_id, data_checkin, data_checkout, num_hospedes, valor_total, status, expira_em)
+            insert into reservas (id, imovel_id, hospede_id, data_checkin, data_checkout, num_hospedes, valor_total, status, expira_em, checkin_token)
             values (
                 ${reservaId}, ${corpo.imovel_id}, ${claims.sub}, ${corpo.data_checkin}, ${corpo.data_checkout},
                 ${corpo.num_hospedes}, ${valorTotal}, ${status},
-                case when ${status} = 'pendente' then now() + interval '${sql.unsafe(String(MINUTOS_RESERVA))} minutes' end
+                case when ${status} = 'pendente' then now() + interval '${sql.unsafe(String(MINUTOS_RESERVA))} minutes' end,
+                ${status === "confirmada" ? randomUUID() : null}
             )
         `;
 
@@ -144,7 +145,7 @@ export const GET: RequestHandler = async ({ request }) => {
         select
             r.id, r.imovel_id, r.data_checkin, r.data_checkout, r.num_hospedes,
             r.valor_total, r.status, r.criado_em,
-            r.expira_em, r.motivo_cancelamento,
+            r.expira_em, r.motivo_cancelamento, r.checkin_token,
             (r.pagamento_id is not null) as pago,
             (r.reembolso_id is not null) as reembolsada,
             i.nome as imovel_nome,

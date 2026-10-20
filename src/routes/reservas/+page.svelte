@@ -10,6 +10,7 @@
     } from "$lib/datas";
     import Preloader from "$lib/components/Preloader.svelte";
     import ModalErro from "$lib/components/ModalErro.svelte";
+    import LinkCheckin from "$lib/components/LinkCheckin.svelte";
     import "../../lib/styles/theme.css";
 
     interface ReservaDetalhada {
@@ -27,6 +28,7 @@
         imovel_nome: string;
         imovel_cidade: string;
         imovel_foto: string | null;
+        checkin_token: string | null;
     }
 
     type Aba = "proximas" | "anteriores";
@@ -249,6 +251,12 @@
                             {/if}
                         </div>
                     </button>
+
+                    {#if r.checkin_token && r.status === "confirmada"}
+                        <div class="link-card">
+                            <LinkCheckin token={r.checkin_token} />
+                        </div>
+                    {/if}
 
                     {#if aguardandoPagamento(r) || podeCancelar(r)}
                         <div class="rodape-card">
@@ -550,6 +558,10 @@
         font-size: 0.72rem;
         color: var(--cor-texto);
         opacity: 0.7;
+    }
+
+    .link-card {
+        padding: 0 0.9rem 0.8rem;
     }
 
     .rodape-card {

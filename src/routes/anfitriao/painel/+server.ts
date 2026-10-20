@@ -49,7 +49,7 @@ export const GET: RequestHandler = async ({ request }) => {
                   select
                       r.id, r.imovel_id, i.nome as imovel_nome, u.nome as hospede_nome,
                       r.data_checkin::text as data_checkin, r.data_checkout::text as data_checkout,
-                      r.num_hospedes, r.status, r.valor_total
+                      r.num_hospedes, r.status, r.valor_total, r.checkin_token
                   from reservas r
                   join imoveis i on i.id = r.imovel_id
                   join usuarios u on u.id = r.hospede_id
@@ -81,6 +81,7 @@ export const GET: RequestHandler = async ({ request }) => {
       noites,
       num_hospedes: r.num_hospedes,
       status: r.status,
+      checkin_token: r.checkin_token,
       valor_bruto: valorBruto,
       comissao,
       valor_liquido: valorBruto - comissao,

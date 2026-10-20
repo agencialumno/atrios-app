@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { STRIPE_SECRET_KEY } from "$env/static/private";
 
@@ -152,7 +153,8 @@ export async function confirmarPagamento(
 ): Promise<void> {
   const [alterada] = await sql`
         update reservas
-        set status = 'confirmada', pagamento_id = ${paymentIntent}, pago_em = now(), expira_em = null
+        set status = 'confirmada', pagamento_id = ${paymentIntent}, pago_em = now(), expira_em = null,
+            checkin_token = coalesce(checkin_token, ${randomUUID()})
         where id = ${reservaId} and status = 'pendente'
         returning imovel_id, data_checkout
     `;

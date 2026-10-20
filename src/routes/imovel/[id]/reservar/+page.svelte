@@ -61,10 +61,25 @@
         bloqueios = await api<Bloqueio[]>(`/imoveis/${idImovel}/calendario`);
     }
 
+    // Vindo do guia de check-in ("Quer ficar mais dias?"), as datas já chegam na URL
+    function preencherDatasDaUrl() {
+        const ci = $page.url.searchParams.get("checkin");
+        const co = $page.url.searchParams.get("checkout");
+        if (!ci || !co || ci >= co) return;
+        const ocupado = bloqueios.some(
+            (b) => b.data_inicio < co && b.data_fim > ci,
+        );
+        if (!ocupado) {
+            checkin = ci;
+            checkout = co;
+        }
+    }
+
     onMount(async () => {
         try {
             imovel = await api<Imovel>(`/imoveis/${idImovel}`);
             await carregarCalendario();
+            preencherDatasDaUrl();
         } catch (e) {
             erro = e instanceof Error ? e.message : "Erro ao carregar o imóvel";
         } finally {

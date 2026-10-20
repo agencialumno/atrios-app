@@ -1,0 +1,34 @@
+name: Keep alive
+
+# O plano Hobby da Vercel só executa Cron 1x por dia. Este workflow garante a frequência real:
+# mantém o backend e o Supabase acordados e dispara as rotinas de reservas e calendários.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE_URL: ${{ secrets.APP_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Acordar backend e banco
+        run: |
+          # --retry cobre a primeira chamada lenta, quando o Supabase ainda está acordando
+          curl --fail --silent --show-error --retry 3 --retry-delay 5 --retry-all-errors \
+            --max-time 40 "${BASE_URL}/health"
+
+      - name: Expirar reservas pendentes
+        run: |
+          curl --fail --silent --show-error --retry 2 --retry-delay 5 --retry-all-errors \
+            --max-time 40 -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${BASE_URL}/cron/expirar-pendentes"
+
+      - name: Sincronizar calendários iCal
+        run: |
+          curl --fail --silent --show-error --retry 2 --retry-delay 5 --retry-all-errors \
+            --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${BASE_URL}/cron/sincronizar-ical"

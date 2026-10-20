@@ -14,6 +14,7 @@ const PREFIXOS_API = [
   "/ical",
   "/demo/ical",
   "/cron",
+  "/health",
   "/uploads",
 ];
 
