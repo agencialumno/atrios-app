@@ -139,6 +139,12 @@ jobs:
             echo "ERRO: o esquema atrios:// nao esta registrado no Info.plist"
             exit 1
           fi
+          for chave in NSCameraUsageDescription NSPhotoLibraryUsageDescription NSMicrophoneUsageDescription; do
+            if ! /usr/libexec/PlistBuddy -c "Print :$chave" "$ARCHIVE_APP/Info.plist" > /dev/null 2>&1; then
+              echo "ERRO: $chave ausente no Info.plist (o iOS fecha o app ao usar camera/galeria)"
+              exit 1
+            fi
+          done
 
       - name: Assinar e empacotar o .ipa manualmente (do zero)
         run: |

@@ -364,7 +364,7 @@
         position: fixed;
         inset: 0;
         background-color: var(--atrios-branco);
-        z-index: 50;
+        z-index: 70;
     }
 
     .coluna-thread.visivel {
@@ -642,7 +642,7 @@
             max-width: 1100px;
             margin: 0 auto;
             padding-top: 1.5rem;
-            height: calc(100dvh - 1.5rem);
+            height: calc(100dvh - 64px - 1.5rem);
         }
 
         .coluna-lista {

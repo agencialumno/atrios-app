@@ -26,7 +26,7 @@
         {
             nome: "Mensagens",
             icone: icones.mensagem,
-            rota: null,
+            rota: "/mensagens",
             ativoEm: ["/mensagens"],
         },
         {

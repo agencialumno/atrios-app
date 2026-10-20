@@ -4,6 +4,15 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>Átrios Locação</string>
+	<!-- Sem estas chaves o iOS encerra o app ao abrir a câmera, o microfone ou a galeria -->
+	<key>NSCameraUsageDescription</key>
+	<string>O Átrios precisa acessar sua câmera para você tirar a foto de perfil e fotos e vídeos dos seus anúncios.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>O Átrios precisa acessar suas fotos para você escolher a foto de perfil e as fotos e vídeos dos seus anúncios.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>O Átrios precisa salvar fotos na sua galeria.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O Átrios precisa acessar o microfone para gravar o som dos vídeos dos seus anúncios.</string>
 	<!-- Registra atrios:// no iOS: é por ele que o login com Google/Apple volta do Safari para o app.
 	     O plugin deep-link não gera isso sozinho para esquemas customizados no iOS. -->
 	<key>CFBundleURLTypes</key>

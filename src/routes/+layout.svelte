@@ -15,7 +15,13 @@
 
     let { children } = $props();
 
-    const rotasComBarra = ["/home", "/imovel", "/perfil", "/reservas"];
+    const rotasComBarra = [
+        "/home",
+        "/imovel",
+        "/perfil",
+        "/reservas",
+        "/mensagens",
+    ];
 
     let mostrarBarra = $derived.by(() => {
         const caminho = $page.url.pathname;
