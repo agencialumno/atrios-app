@@ -11,6 +11,7 @@ const PREFIXOS_API = [
   "/pagamentos",
   "/anfitriao",
   "/equipe",
+  "/conversas",
   "/ical",
   "/demo/ical",
   "/cron",
