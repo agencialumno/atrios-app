@@ -282,7 +282,9 @@
     main {
         min-height: 100dvh;
         background-color: var(--cor-fundo);
-        padding: 1.75rem 1.25rem calc(var(--altura-barra) + 1.5rem);
+        /* env(): no iPhone, afasta o conteúdo do relógio/sinal/bateria do sistema */
+        padding: calc(1.75rem + env(safe-area-inset-top, 0px)) 1.25rem
+            calc(var(--altura-barra) + 1.5rem);
         font-family: var(--fonte-corpo);
     }
 

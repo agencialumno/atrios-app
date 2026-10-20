@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Criar o .env.production para o build
-        run: echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env.production
+        run: echo "VITE_API_URL=https://atrios-app-two.vercel.app" > .env.production
 
       - name: Conferir os icones (a Apple recusa transparencia)
         run: |

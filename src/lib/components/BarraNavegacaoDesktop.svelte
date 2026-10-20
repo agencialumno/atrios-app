@@ -82,7 +82,9 @@
 </header>
 
 <style>
+    /* Só aparece no desktop; no celular a navegação é a barra inferior */
     .barra {
+        display: none;
         position: fixed;
         top: 0;
         left: 0;
@@ -168,5 +170,11 @@
         font-size: 0.9rem;
         cursor: pointer;
         box-shadow: 0 2px 10px rgba(31, 42, 38, 0.12);
+    }
+
+    @media (min-width: 960px) {
+        .barra {
+            display: block;
+        }
     }
 </style>

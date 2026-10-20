@@ -15,20 +15,38 @@ const PREFIXOS_API = [
   "/demo/ical",
   "/cron",
   "/health",
+  "/checkin",
   "/uploads",
 ];
 
-export const handle: Handle = async ({ event, resolve }) => {
-  const resposta = await resolve(event);
+// O app nativo (Tauri) roda em tauri://localhost / http://tauri.localhost, uma origem diferente da API.
+// A autenticação é por cabeçalho Authorization (sem cookies), então liberar qualquer origem é seguro.
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
+};
 
+export const handle: Handle = async ({ event, resolve }) => {
   const ehApi = PREFIXOS_API.some(
     (prefixo) =>
       event.url.pathname === prefixo ||
       event.url.pathname.startsWith(`${prefixo}/`),
   );
 
+  // Preflight: o navegador/WebView pergunta antes de mandar Content-Type JSON ou Authorization
+  if (ehApi && event.request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS });
+  }
+
+  const resposta = await resolve(event);
+
   if (ehApi) {
     resposta.headers.set("Cache-Control", "no-store");
+    for (const [nome, valor] of Object.entries(CORS)) {
+      resposta.headers.set(nome, valor);
+    }
   }
 
   return resposta;

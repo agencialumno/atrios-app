@@ -4,9 +4,7 @@
 
 {#if visivel}
     <div class="splash">
-        <video autoplay loop muted playsinline class="video-splash">
-            <source src="/splash-atrios.mp4" type="video/mp4" />
-        </video>
+        <img src="/atrios-logo.png" alt="Átrios" class="logo-splash" />
     </div>
 {/if}
 
@@ -21,9 +19,21 @@
         z-index: 9999;
     }
 
-    .video-splash {
-        width: 130px;
-        height: 130px;
+    .logo-splash {
+        width: 180px;
+        height: auto;
         object-fit: contain;
+        animation: aparecer 0.6s ease-out both;
+    }
+
+    @keyframes aparecer {
+        from {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 </style>

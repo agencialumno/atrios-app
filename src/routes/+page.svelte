@@ -22,7 +22,7 @@
                 } else {
                     goto("/bem-vindo");
                 }
-            }, 3000);
+            }, 2000);
         } else {
             // Navegador comum (o site): mostra a home institucional
             ehWeb = true;
