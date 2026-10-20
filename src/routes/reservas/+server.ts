@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { extrairClaims } from "$lib/server/auth";
 import { existeConflito } from "$lib/server/calendario";
+import { enviarLinkCheckin } from "$lib/server/email";
 import {
   stripeAtivo,
   criarSessao,
@@ -103,6 +104,9 @@ export const POST: RequestHandler = async ({ request, url }) => {
             `;
     }
   });
+
+  // Sem Stripe a reserva já nasce confirmada: manda o link de check-in agora
+  if (!cobrar) await enviarLinkCheckin(reservaId);
 
   let checkoutUrl: string | null = null;
 

@@ -10,6 +10,7 @@
 
     let nome = $derived($auth.usuario?.nome ?? "");
     let email = $derived($auth.usuario?.email ?? "");
+    let telefone = $derived($auth.usuario?.telefone ?? "");
     let foto = $derived($auth.usuario?.foto_url ?? null);
     let enviandoFoto = $state(false);
     let erro = $state("");
@@ -117,6 +118,48 @@
     </header>
 
     <div class="cartoes">
+        <section class="cartao">
+            <h2>Meus dados</h2>
+            <dl class="dados">
+                <div>
+                    <dt>Nome</dt>
+                    <dd>{nome}</dd>
+                </div>
+                <div>
+                    <dt>E-mail</dt>
+                    <dd>{email}</dd>
+                </div>
+                {#if telefone}
+                    <div>
+                        <dt>Telefone</dt>
+                        <dd>{telefone}</dd>
+                    </div>
+                {/if}
+                <div>
+                    <dt>Tipo de conta</dt>
+                    <dd>
+                        {ehEquipe
+                            ? "Equipe Átrios"
+                            : jaAnfitriao
+                              ? "Hóspede e anfitrião"
+                              : "Hóspede"}
+                    </dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="cartao">
+            <h2>{jaAnfitriao ? "Novo anúncio" : "Seja anfitrião"}</h2>
+            <p>
+                {jaAnfitriao
+                    ? "Cadastre mais um imóvel e deixe a Átrios cuidar dos hóspedes."
+                    : "Anuncie seu imóvel e deixe a Átrios cuidar de tudo, como uma coanfitriã de verdade."}
+            </p>
+            <button class="botao-principal" onclick={() => goto("/anunciar")}>
+                Criar anúncio
+            </button>
+        </section>
+
         {#if ehEquipe}
             <section class="cartao">
                 <h2>Painel da equipe</h2>
@@ -173,17 +216,6 @@
             </button>
         </section>
 
-        <section class="cartao">
-            <h2>{jaAnfitriao ? "Novo anúncio" : "Seja anfitrião"}</h2>
-            <p>
-                {jaAnfitriao
-                    ? "Cadastre mais um imóvel e deixe a Átrios cuidar dos hóspedes."
-                    : "Anuncie seu imóvel e deixe a Átrios cuidar de tudo, como uma coanfitriã de verdade."}
-            </p>
-            <button class="botao-principal" onclick={() => goto("/anunciar")}>
-                Criar anúncio
-            </button>
-        </section>
     </div>
 
     <button class="botao-sair" onclick={sair}>Sair da conta</button>
@@ -240,6 +272,34 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .dados {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .dados div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .dados dt {
+        font-size: 0.78rem;
+        color: var(--cor-texto);
+        opacity: 0.6;
+    }
+
+    .dados dd {
+        margin: 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--cor-texto);
+        text-align: right;
+        word-break: break-word;
     }
 
     .oculto {

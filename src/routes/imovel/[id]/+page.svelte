@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { api } from "$lib/api/client";
+    import { auth } from "$lib/stores/auth";
     import { icones } from "$lib/icones";
     import { encontrarComodidade } from "$lib/comodidades";
     import Galeria from "$lib/components/Galeria.svelte";
@@ -12,6 +13,7 @@
 
     interface Imovel {
         id: string;
+        proprietario_id: string;
         nome: string;
         endereco: string;
         cidade: string;
@@ -90,8 +92,18 @@
         }
     });
 
+    // Quem anunciou o imóvel não reserva: o botão vira "Editar anúncio"
+    let ehDono = $derived(
+        !!imovel && $auth.usuario?.id === imovel.proprietario_id,
+    );
+    let rotuloAcao = $derived(ehDono ? "Editar anúncio" : "Reservar");
+
     function irParaReserva() {
-        goto(`/imovel/${idImovel}/reservar`);
+        if (ehDono) {
+            goto(`/anfitriao/editar/${idImovel}`);
+        } else {
+            goto(`/imovel/${idImovel}/reservar`);
+        }
     }
 
     // Garante autoplay mudo dentro do círculo (alguns navegadores ignoram o atributo)
@@ -127,6 +139,7 @@
                         }}
                         bind:tourAberto
                         aoReservar={irParaReserva}
+                        {rotuloAcao}
                     />
                 </div>
             </div>
@@ -235,7 +248,7 @@
                         <span>/noite</span>
                     </p>
                     <button class="reserva-botao" onclick={irParaReserva}
-                        >Reservar</button
+                        >{rotuloAcao}</button
                     >
                 </div>
             </div>
@@ -287,7 +300,7 @@
                     >
                     <span class="unidade">/noite</span>
                 </div>
-                <button onclick={irParaReserva}>Reservar</button>
+                <button onclick={irParaReserva}>{rotuloAcao}</button>
             </div>
         </div>
 

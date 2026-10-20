@@ -16,6 +16,7 @@
         info = null,
         tourAberto = $bindable(false),
         aoReservar = () => {},
+        rotuloAcao = "Reservar",
     }: {
         fotos: string[];
         nome: string;
@@ -23,6 +24,7 @@
         info?: InfoAnuncio | null;
         tourAberto?: boolean;
         aoReservar?: () => void;
+        rotuloAcao?: string;
     } = $props();
 
     let indice = $state(0);
@@ -298,7 +300,7 @@
                         <span>/noite</span>
                     </p>
                     <button class="reservar" onclick={reservarDoVideo}
-                        >Reservar</button
+                        >{rotuloAcao}</button
                     >
                 </div>
             {/if}

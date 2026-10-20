@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
+import { enviarLinkCheckin } from "$lib/server/email";
 import { STRIPE_SECRET_KEY } from "$env/static/private";
 
 /** Por quanto tempo uma reserva ainda não paga segura as datas */
@@ -165,6 +166,9 @@ export async function confirmarPagamento(
             select gen_random_uuid()::text, ${alterada.imovel_id}, ${reservaId}, 'limpeza', ${alterada.data_checkout}
             where not exists (select 1 from tarefas where reserva_id = ${reservaId})
         `;
+    // Só na transição pendente -> confirmada, então o e-mail sai uma única vez.
+    // enviarLinkCheckin nunca lança erro: falha de e-mail não desfaz a confirmação.
+    await enviarLinkCheckin(reservaId);
     return;
   }
 

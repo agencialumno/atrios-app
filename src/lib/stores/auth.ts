@@ -7,6 +7,7 @@ export interface Usuario {
   papel: string;
   pode_hospedar: boolean;
   foto_url?: string | null;
+  telefone?: string | null;
 }
 
 interface EstadoAuth {
