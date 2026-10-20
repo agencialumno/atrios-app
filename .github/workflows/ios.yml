@@ -19,6 +19,9 @@ jobs:
       - name: Baixar o codigo
         uses: actions/checkout@v4
 
+      - name: Criar o .env.production para o build
+        run: echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env.production
+
       - name: Conferir os icones (a Apple recusa transparencia)
         run: |
           if [ -d src-tauri/icons/ios ]; then
