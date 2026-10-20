@@ -131,6 +131,15 @@ jobs:
           find "$ARCHIVE_APP" -type f | wc -l
           find "$ARCHIVE_APP" -type f
 
+      - name: Conferir o esquema atrios:// no Info.plist (login social volta por ele)
+        run: |
+          ARCHIVE_APP=$(find src-tauri/gen/apple/build -name "*.xcarchive" -exec find {} -name "*.app" \; | head -n 1)
+          /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$ARCHIVE_APP/Info.plist" | tee "$RUNNER_TEMP/urltypes.txt"
+          if ! grep -q "atrios" "$RUNNER_TEMP/urltypes.txt"; then
+            echo "ERRO: o esquema atrios:// nao esta registrado no Info.plist"
+            exit 1
+          fi
+
       - name: Assinar e empacotar o .ipa manualmente (do zero)
         run: |
           IDENTIDADE="Apple Distribution: Lumno Agencia de Marketing LTDA"

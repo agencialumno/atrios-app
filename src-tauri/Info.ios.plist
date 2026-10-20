@@ -4,5 +4,18 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>Átrios Locação</string>
+	<!-- Registra atrios:// no iOS: é por ele que o login com Google/Apple volta do Safari para o app.
+	     O plugin deep-link não gera isso sozinho para esquemas customizados no iOS. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.agencialumno.atrios</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>atrios</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
