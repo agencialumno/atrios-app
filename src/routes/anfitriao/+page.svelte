@@ -448,6 +448,15 @@
                                 {#if r.checkin_token && r.status === "confirmada"}
                                     <LinkCheckin token={r.checkin_token} />
                                 {/if}
+                                {#if r.status === "confirmada" || r.status === "concluida"}
+                                    <button
+                                        class="conversar"
+                                        onclick={() =>
+                                            goto(`/mensagens?reserva=${r.id}`)}
+                                    >
+                                        Conversar com o hóspede
+                                    </button>
+                                {/if}
                             </article>
                         {/each}
                     </div>
@@ -996,6 +1005,18 @@
     }
 
     /* Reservas */
+    .conversar {
+        padding: 0.6rem;
+        border: 1.5px solid var(--cor-borda);
+        border-radius: var(--raio-pill);
+        background: none;
+        color: var(--cor-texto);
+        font-family: var(--fonte-corpo);
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+
     .card-reserva {
         display: flex;
         flex-direction: column;

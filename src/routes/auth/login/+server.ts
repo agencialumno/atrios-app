@@ -16,7 +16,7 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const [usuario] = await sql`
-        select id, nome, email, senha_hash, papel, telefone, pode_hospedar
+        select id, nome, email, senha_hash, papel, telefone, pode_hospedar, foto_url
         from usuarios
         where email = ${corpo.email}
     `;
@@ -41,6 +41,7 @@ export const POST: RequestHandler = async ({ request }) => {
       papel: usuario.papel,
       telefone: usuario.telefone,
       pode_hospedar: usuario.pode_hospedar,
+      foto_url: usuario.foto_url,
     },
   });
 };

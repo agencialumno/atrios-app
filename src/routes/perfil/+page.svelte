@@ -1,11 +1,77 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { auth } from "$lib/stores/auth";
+    import { upload } from "@vercel/blob/client";
+    import { api } from "$lib/api/client";
+    import { API_URL } from "$lib/config";
+    import { auth, type Usuario } from "$lib/stores/auth";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "../../lib/styles/theme.css";
 
     let nome = $derived($auth.usuario?.nome ?? "");
     let email = $derived($auth.usuario?.email ?? "");
-    let inicial = $derived(nome.charAt(0).toUpperCase());
+    let foto = $derived($auth.usuario?.foto_url ?? null);
+    let enviandoFoto = $state(false);
+    let erro = $state("");
+    let seletor = $state<HTMLInputElement | null>(null);
+
+    const TAMANHO_MAXIMO = 10 * 1024 * 1024;
+
+    async function salvarFoto(url: string | null) {
+        const atualizado = await api<Usuario>("/auth/me", {
+            method: "PATCH",
+            autenticado: true,
+            body: { foto_url: url },
+        });
+        auth.atualizarUsuario(atualizado);
+    }
+
+    async function escolherFoto(e: Event) {
+        const entrada = e.currentTarget as HTMLInputElement;
+        const arquivo = entrada.files?.[0];
+        entrada.value = "";
+        if (!arquivo) return;
+
+        if (!arquivo.type.startsWith("image/")) {
+            erro = "Escolha um arquivo de imagem.";
+            return;
+        }
+        if (arquivo.size > TAMANHO_MAXIMO) {
+            erro = "A foto é grande demais (máximo de 10 MB).";
+            return;
+        }
+
+        enviandoFoto = true;
+        try {
+            const token = localStorage.getItem("atrios_token") ?? "";
+            const blob = await upload(`perfil-${arquivo.name}`, arquivo, {
+                access: "public",
+                handleUploadUrl: `${API_URL}/uploads?token=${encodeURIComponent(token)}`,
+            });
+            await salvarFoto(blob.url);
+        } catch (err) {
+            erro =
+                err instanceof Error
+                    ? err.message
+                    : "Não foi possível enviar a foto.";
+        } finally {
+            enviandoFoto = false;
+        }
+    }
+
+    async function removerFoto() {
+        enviandoFoto = true;
+        try {
+            await salvarFoto(null);
+        } catch (err) {
+            erro =
+                err instanceof Error
+                    ? err.message
+                    : "Não foi possível remover a foto.";
+        } finally {
+            enviandoFoto = false;
+        }
+    }
     let jaAnfitriao = $derived($auth.usuario?.pode_hospedar ?? false);
     let ehEquipe = $derived($auth.usuario?.papel === "equipe");
     let vePainel = $derived(jaAnfitriao || ehEquipe);
@@ -18,7 +84,34 @@
 
 <main>
     <header>
-        <div class="avatar">{inicial}</div>
+        <button
+            class="avatar"
+            onclick={() => seletor?.click()}
+            disabled={enviandoFoto}
+            aria-label="Trocar foto de perfil"
+        >
+            <Avatar
+                {nome}
+                semente={$auth.usuario?.id ?? ""}
+                {foto}
+                tamanho={84}
+            />
+            <span class="editar">{enviandoFoto ? "..." : "✎"}</span>
+        </button>
+        <input
+            bind:this={seletor}
+            type="file"
+            accept="image/*"
+            class="oculto"
+            onchange={escolherFoto}
+        />
+        {#if foto}
+            <button
+                class="link-foto"
+                onclick={removerFoto}
+                disabled={enviandoFoto}>Remover foto</button
+            >
+        {/if}
         <h1>{nome}</h1>
         <p class="email">{email}</p>
     </header>
@@ -67,6 +160,20 @@
         {/if}
 
         <section class="cartao">
+            <h2>Fale com a Átrios</h2>
+            <p>
+                Dúvidas, problemas com uma reserva ou qualquer ajuda: nossa
+                equipe responde pelas mensagens.
+            </p>
+            <button
+                class="botao-principal"
+                onclick={() => goto("/mensagens?suporte=1")}
+            >
+                Falar com o suporte
+            </button>
+        </section>
+
+        <section class="cartao">
             <h2>{jaAnfitriao ? "Novo anúncio" : "Seja anfitrião"}</h2>
             <p>
                 {jaAnfitriao
@@ -81,6 +188,8 @@
 
     <button class="botao-sair" onclick={sair}>Sair da conta</button>
 </main>
+
+<ModalErro mensagem={erro} aoFechar={() => (erro = "")} />
 
 <style>
     main {
@@ -102,20 +211,51 @@
     }
 
     .avatar {
-        width: 84px;
-        height: 84px;
+        position: relative;
+        width: 90px;
+        height: 90px;
+        padding: 0;
         border-radius: 50%;
-        background-color: var(--atrios-dourado);
-        color: var(--atrios-verde-escuro);
-        font-family: var(--fonte-titulo);
-        font-weight: 700;
-        font-size: 2rem;
+        background: none;
         display: flex;
         align-items: center;
         justify-content: center;
         border: 3px solid var(--atrios-branco);
         box-shadow: 0 4px 16px rgba(31, 42, 38, 0.12);
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.2rem;
+        cursor: pointer;
+    }
+
+    .editar {
+        position: absolute;
+        right: -4px;
+        bottom: -2px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background-color: var(--atrios-dourado);
+        color: var(--atrios-verde-escuro);
+        border: 2px solid var(--atrios-branco);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .oculto {
+        display: none;
+    }
+
+    .link-foto {
+        background: none;
+        border: none;
+        padding: 0;
+        font-family: var(--fonte-corpo);
+        font-size: 0.75rem;
+        color: var(--cor-texto);
+        opacity: 0.6;
+        text-decoration: underline;
+        cursor: pointer;
     }
 
     h1 {

@@ -6,6 +6,7 @@ export interface Usuario {
   email: string;
   papel: string;
   pode_hospedar: boolean;
+  foto_url?: string | null;
 }
 
 interface EstadoAuth {

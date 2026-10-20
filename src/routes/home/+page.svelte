@@ -6,6 +6,7 @@
     import { publicacao } from "$lib/stores/publicacao";
     import { icones } from "$lib/icones";
     import { categorias } from "$lib/categorias";
+    import Avatar from "$lib/components/Avatar.svelte";
     import Preloader from "$lib/components/Preloader.svelte";
     import "../../lib/styles/theme.css";
 
@@ -73,7 +74,6 @@
     }
 
     let primeiroNome = $derived($auth.usuario?.nome?.split(" ")[0] ?? "");
-    let inicial = $derived(primeiroNome.charAt(0).toUpperCase());
 
     let tituloFeed = $derived(
         categoriaSelecionada
@@ -125,7 +125,12 @@
                     onclick={() => goto("/perfil")}
                     aria-label="Perfil"
                 >
-                    {inicial}
+                    <Avatar
+                        nome={$auth.usuario?.nome ?? ""}
+                        semente={$auth.usuario?.id ?? ""}
+                        foto={$auth.usuario?.foto_url}
+                        tamanho={42}
+                    />
                 </button>
             </div>
         </div>
@@ -282,9 +287,7 @@
     main {
         min-height: 100dvh;
         background-color: var(--cor-fundo);
-        /* env(): no iPhone, afasta o conteúdo do relógio/sinal/bateria do sistema */
-        padding: calc(1.75rem + env(safe-area-inset-top, 0px)) 1.25rem
-            calc(var(--altura-barra) + 1.5rem);
+        padding: 1.75rem 1.25rem calc(var(--altura-barra) + 1.5rem);
         font-family: var(--fonte-corpo);
     }
 
@@ -345,12 +348,13 @@
         height: 46px;
         flex-shrink: 0;
         border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
         border: 2px solid var(--atrios-branco);
-        background-color: var(--atrios-dourado);
-        color: var(--atrios-verde-escuro);
-        font-family: var(--fonte-titulo);
-        font-weight: 700;
-        font-size: 1rem;
+        background: none;
         cursor: pointer;
         box-shadow: 0 2px 10px rgba(31, 42, 38, 0.12);
     }

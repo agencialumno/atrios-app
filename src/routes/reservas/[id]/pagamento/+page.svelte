@@ -216,6 +216,13 @@
                 </div>
             {/if}
 
+            <button
+                class="botao-secundario"
+                onclick={() => goto(`/mensagens?reserva=${idReserva}`)}
+            >
+                Conversar com o anfitrião
+            </button>
+
             <button class="botao-principal" onclick={() => goto("/reservas")}
                 >Ver minhas reservas</button
             >

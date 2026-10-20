@@ -2,42 +2,56 @@ import { json, error } from "@sveltejs/kit";
 import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { extrairClaims } from "$lib/server/auth";
+import { resolverConversa } from "$lib/server/conversas";
 import type { RequestHandler } from "./$types";
 
-async function exigirParticipante(reservaId: string, usuarioId: string) {
-  const [reserva] = await sql`
-        select r.hospede_id, i.proprietario_id
-        from reservas r
-        join imoveis i on i.id = r.imovel_id
-        where r.id = ${reservaId}
-    `;
-  if (!reserva) throw error(404, "reserva não encontrada");
-  if (
-    reserva.hospede_id !== usuarioId &&
-    reserva.proprietario_id !== usuarioId
-  ) {
-    throw error(403, "você não participa desta conversa");
-  }
-  return reserva;
-}
+const COLUNAS_MENSAGEM = sql`m.id, m.remetente_id, u.nome as remetente_nome, u.foto_url as remetente_foto, m.texto, m.criado_em, m.lida`;
 
-export const GET: RequestHandler = async ({ request, params }) => {
+export const GET: RequestHandler = async ({ request, params, url }) => {
   const claims = await extrairClaims(request.headers);
-  await exigirParticipante(params.id, claims.sub);
+  const conversa = await resolverConversa(params.id, claims.sub);
 
-  const mensagens = await sql`
-        select m.id, m.remetente_id, u.nome as remetente_nome, m.texto, m.criado_em, m.lida
-        from mensagens m
-        join usuarios u on u.id = m.remetente_id
-        where m.reserva_id = ${params.id}
-        order by m.criado_em asc
-    `;
+  // O app consulta de tempos em tempos só o que chegou depois da última mensagem que já tem
+  const depoisDe = url.searchParams.get("depois_de");
+  const filtroData = depoisDe ? sql`and m.criado_em > ${depoisDe}` : sql``;
 
-  await sql`
+  const mensagens =
+    conversa.tipo === "reserva"
+      ? await sql`
+          select ${COLUNAS_MENSAGEM}
+          from mensagens m
+          join usuarios u on u.id = m.remetente_id
+          where m.reserva_id = ${conversa.reservaId} ${filtroData}
+          order by m.criado_em asc
+      `
+      : await sql`
+          select ${COLUNAS_MENSAGEM}
+          from mensagens m
+          join usuarios u on u.id = m.remetente_id
+          where m.suporte_usuario_id = ${conversa.usuarioId} ${filtroData}
+          order by m.criado_em asc
+      `;
+
+  if (conversa.tipo === "reserva") {
+    await sql`
         update mensagens
         set lida = true
-        where reserva_id = ${params.id} and remetente_id != ${claims.sub}
+        where reserva_id = ${conversa.reservaId} and remetente_id != ${claims.sub} and lida = false
     `;
+  } else if (conversa.comoEquipe) {
+    // Qualquer pessoa da equipe lendo marca as mensagens do usuário como lidas
+    await sql`
+        update mensagens
+        set lida = true
+        where suporte_usuario_id = ${conversa.usuarioId} and remetente_id = ${conversa.usuarioId} and lida = false
+    `;
+  } else {
+    await sql`
+        update mensagens
+        set lida = true
+        where suporte_usuario_id = ${conversa.usuarioId} and remetente_id != ${claims.sub} and lida = false
+    `;
+  }
 
   return json(mensagens);
 };
@@ -48,7 +62,7 @@ interface NovaMensagem {
 
 export const POST: RequestHandler = async ({ request, params }) => {
   const claims = await extrairClaims(request.headers);
-  await exigirParticipante(params.id, claims.sub);
+  const conversa = await resolverConversa(params.id, claims.sub);
 
   const corpo = (await request.json()) as NovaMensagem;
   if (!corpo.texto || !corpo.texto.trim()) {
@@ -59,13 +73,20 @@ export const POST: RequestHandler = async ({ request, params }) => {
   }
 
   const id = randomUUID();
-  await sql`
+  if (conversa.tipo === "reserva") {
+    await sql`
         insert into mensagens (id, reserva_id, remetente_id, texto)
-        values (${id}, ${params.id}, ${claims.sub}, ${corpo.texto.trim()})
+        values (${id}, ${conversa.reservaId}, ${claims.sub}, ${corpo.texto.trim()})
     `;
+  } else {
+    await sql`
+        insert into mensagens (id, suporte_usuario_id, remetente_id, texto)
+        values (${id}, ${conversa.usuarioId}, ${claims.sub}, ${corpo.texto.trim()})
+    `;
+  }
 
   const [mensagem] = await sql`
-        select m.id, m.remetente_id, u.nome as remetente_nome, m.texto, m.criado_em, m.lida
+        select ${COLUNAS_MENSAGEM}
         from mensagens m
         join usuarios u on u.id = m.remetente_id
         where m.id = ${id}

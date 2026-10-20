@@ -346,7 +346,7 @@
 
     .voltar {
         position: absolute;
-        top: 1rem;
+        top: calc(env(safe-area-inset-top, 0px) + 1rem);
         left: 1rem;
         width: 38px;
         height: 38px;

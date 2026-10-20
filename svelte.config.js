@@ -14,6 +14,8 @@ const naVercel = !!process.env.VERCEL;
 const config = {
   preprocess: vitePreprocess(),
   kit: {
+    // A Apple devolve o login social por POST (form_post) vindo de appleid.apple.com
+    csrf: { trustedOrigins: ["https://appleid.apple.com"] },
     adapter: naVercel
       ? adapterVercel()
       : adapterStatic({

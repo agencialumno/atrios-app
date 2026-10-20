@@ -1,14 +1,24 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { api } from "$lib/api/client";
     import { auth } from "$lib/stores/auth";
     import ModalErro from "$lib/components/ModalErro.svelte";
+    import BotoesSociais from "$lib/components/BotoesSociais.svelte";
+    import { concluirLoginDoFragmento } from "$lib/social";
     import "../../lib/styles/theme.css";
 
     let email = $state("");
     let senha = $state("");
     let erro = $state("");
     let carregando = $state(false);
+
+    // No site, o login com Google/Apple volta para /login#token=...
+    onMount(() => {
+        concluirLoginDoFragmento().catch((e) => {
+            erro = e instanceof Error ? e.message : "Erro ao entrar";
+        });
+    });
 
     async function entrar() {
         erro = "";
@@ -77,6 +87,8 @@
                 {carregando ? "Entrando..." : "Entrar"}
             </button>
         </form>
+
+        <BotoesSociais aoErro={(m) => (erro = m)} />
 
         <p class="link-cadastro">
             Não tem conta? <a href="/cadastro">Cadastre-se</a>

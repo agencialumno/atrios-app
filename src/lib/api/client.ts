@@ -1,9 +1,13 @@
+import { goto } from "$app/navigation";
 import { API_URL } from "$lib/config";
+import { auth } from "$lib/stores/auth";
 
 interface OpcoesRequisicao {
   method?: string;
   body?: unknown;
   autenticado?: boolean;
+  /** false: em 401 só limpa a sessão, sem mandar para o login (ex.: checagem silenciosa ao abrir o site) */
+  redirecionarNo401?: boolean;
 }
 
 const TIMEOUT_MS = 15000;
@@ -12,7 +16,12 @@ export async function api<T>(
   rota: string,
   opcoes: OpcoesRequisicao = {},
 ): Promise<T> {
-  const { method = "GET", body, autenticado = false } = opcoes;
+  const {
+    method = "GET",
+    body,
+    autenticado = false,
+    redirecionarNo401 = true,
+  } = opcoes;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -47,6 +56,16 @@ export async function api<T>(
     );
   } finally {
     clearTimeout(temporizador);
+  }
+
+  // Token recusado pelo servidor (expirado, ou emitido por outro servidor/segredo): a sessão salva
+  // não serve mais. Limpa e manda para o login em vez de deixar a tela quebrada com erro.
+  if (resposta.status === 401 && autenticado) {
+    auth.logout();
+    if (redirecionarNo401 && !window.location.pathname.startsWith("/login")) {
+      goto("/login");
+    }
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   if (!resposta.ok) {

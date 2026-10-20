@@ -3,6 +3,8 @@
     import { api } from "$lib/api/client";
     import { auth } from "$lib/stores/auth";
     import ModalErro from "$lib/components/ModalErro.svelte";
+    import BotoesSociais from "$lib/components/BotoesSociais.svelte";
+    import { REQUISITOS_SENHA, senhaForte } from "$lib/senha";
     import "../../lib/styles/theme.css";
 
     let nome = $state("");
@@ -12,7 +14,13 @@
     let erro = $state("");
     let carregando = $state(false);
 
+    let requisitos = $derived(
+        REQUISITOS_SENHA.map((r) => ({ ...r, cumprido: r.ok(senha) })),
+    );
+    let podeCadastrar = $derived(senhaForte(senha) && !carregando);
+
     async function cadastrar() {
+        if (!senhaForte(senha)) return;
         erro = "";
         carregando = true;
 
@@ -92,13 +100,27 @@
                     bind:value={senha}
                     required
                     placeholder="••••••••"
+                    autocomplete="new-password"
                 />
             </label>
 
-            <button type="submit" disabled={carregando}>
+            <ul class="requisitos" aria-live="polite">
+                {#each requisitos as r (r.id)}
+                    <li class:cumprido={r.cumprido}>
+                        <span class="marca" aria-hidden="true"
+                            >{r.cumprido ? "✓" : "○"}</span
+                        >
+                        {r.rotulo}
+                    </li>
+                {/each}
+            </ul>
+
+            <button type="submit" disabled={!podeCadastrar}>
                 {carregando ? "Criando conta..." : "Criar conta"}
             </button>
         </form>
+
+        <BotoesSociais aoErro={(m) => (erro = m)} />
 
         <p class="link-login">
             Já tem conta? <a href="/login">Entrar</a>
@@ -200,6 +222,36 @@
     button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+    }
+
+    .requisitos {
+        list-style: none;
+        margin: -0.3rem 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .requisitos li {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.75rem;
+        color: var(--cor-texto);
+        opacity: 0.6;
+        transition: color 0.15s, opacity 0.15s;
+    }
+
+    .requisitos li.cumprido {
+        color: #2c8a4a;
+        opacity: 1;
+    }
+
+    .requisitos .marca {
+        width: 1rem;
+        text-align: center;
+        font-weight: 700;
     }
 
     .link-login {

@@ -39,7 +39,9 @@ export async function extrairClaims(headers: Headers): Promise<Claims> {
   const token = cabecalho.slice("Bearer ".length);
 
   try {
-    const { payload } = await jwtVerify(token, segredo);
+    const { payload } = await jwtVerify(token, segredo, {
+      clockTolerance: 60, // tolera pequena diferença de relógio
+    });
     if (typeof payload.sub !== "string") throw new Error("token sem sub");
     return { sub: payload.sub };
   } catch {

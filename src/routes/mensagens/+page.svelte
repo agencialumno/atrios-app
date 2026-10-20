@@ -1,23 +1,24 @@
 <script lang="ts">
-    import { onMount, untrack } from "svelte";
+    import { onMount, tick } from "svelte";
+    import { page } from "$app/stores";
     import { api } from "$lib/api/client";
     import { auth } from "$lib/stores/auth";
-    import { formatarCurta } from "$lib/datas";
+    import Avatar from "$lib/components/Avatar.svelte";
     import Preloader from "$lib/components/Preloader.svelte";
+    import ModalErro from "$lib/components/ModalErro.svelte";
     import "../../lib/styles/theme.css";
 
+    // "id" é a chave da conversa: id da reserva, "suporte", ou "suporte-<usuário>" (visão da equipe)
     interface Conversa {
-        reserva_id: string;
-        imovel_id: string;
-        imovel_nome: string;
-        data_checkin: string;
-        data_checkout: string;
-        reserva_status: string;
-        outro_id: string;
+        id: string;
+        tipo: "reserva" | "suporte";
+        imovel_nome: string | null;
+        outro_id: string | null;
         outro_nome: string;
-        ultima_mensagem: string;
-        ultima_mensagem_em: string;
-        ultima_mensagem_de: string;
+        outro_foto: string | null;
+        ultima_mensagem: string | null;
+        ultima_mensagem_em: string | null;
+        ultima_mensagem_de: string | null;
         nao_lidas: number;
     }
 
@@ -25,20 +26,27 @@
         id: string;
         remetente_id: string;
         remetente_nome: string;
+        remetente_foto: string | null;
         texto: string;
         criado_em: string;
         lida: boolean;
     }
 
+    const INTERVALO_THREAD_MS = 4000;
+    const INTERVALO_LISTA_MS = 15000;
+
     let conversas = $state<Conversa[]>([]);
     let carregandoLista = $state(true);
     let erro = $state("");
+    let erroEnvio = $state("");
 
     let selecionada = $state<string | null>(null);
+    let cabecalho = $state<Conversa | null>(null);
     let mensagens = $state<Mensagem[]>([]);
     let carregandoThread = $state(false);
     let textoNovo = $state("");
     let enviando = $state(false);
+    let listaEl = $state<HTMLDivElement | null>(null);
 
     const meuId = $derived($auth.usuario?.id);
 
@@ -49,29 +57,72 @@
             });
             erro = "";
         } catch (e) {
-            erro =
-                e instanceof Error ? e.message : "Erro ao carregar conversas";
+            if (conversas.length === 0) {
+                erro =
+                    e instanceof Error
+                        ? e.message
+                        : "Erro ao carregar conversas";
+            }
         } finally {
             carregandoLista = false;
         }
     }
 
-    async function abrirConversa(reservaId: string) {
-        selecionada = reservaId;
+    async function rolarParaOFim() {
+        await tick();
+        if (listaEl) listaEl.scrollTop = listaEl.scrollHeight;
+    }
+
+    async function abrirConversa(chave: string) {
+        selecionada = chave;
         carregandoThread = true;
+        mensagens = [];
+        cabecalho = conversas.find((c) => c.id === chave) ?? null;
         try {
-            mensagens = await api<Mensagem[]>(
-                `/conversas/${reservaId}/mensagens`,
-                { autenticado: true },
-            );
-            // Zera o contador de não lidas localmente, já que o backend marcou como lidas
+            if (!cabecalho) {
+                // conversa ainda sem mensagens (aberta por um botão de "Conversar")
+                cabecalho = await api<Conversa>(`/conversas/${chave}`, {
+                    autenticado: true,
+                });
+            }
+            mensagens = await api<Mensagem[]>(`/conversas/${chave}/mensagens`, {
+                autenticado: true,
+            });
+            // O backend marcou como lidas; zera o contador localmente
             conversas = conversas.map((c) =>
-                c.reserva_id === reservaId ? { ...c, nao_lidas: 0 } : c,
+                c.id === chave ? { ...c, nao_lidas: 0 } : c,
             );
         } catch (e) {
             erro = e instanceof Error ? e.message : "Erro ao abrir conversa";
+            selecionada = null;
         } finally {
             carregandoThread = false;
+        }
+        await rolarParaOFim();
+    }
+
+    // Polling simples: busca só o que chegou depois da última mensagem conhecida
+    async function buscarNovas() {
+        const chave = selecionada;
+        if (!chave || carregandoThread || enviando) return;
+        const ultima = mensagens[mensagens.length - 1];
+        try {
+            const sufixo = ultima
+                ? `?depois_de=${encodeURIComponent(ultima.criado_em)}`
+                : "";
+            const novas = await api<Mensagem[]>(
+                `/conversas/${chave}/mensagens${sufixo}`,
+                { autenticado: true },
+            );
+            if (chave !== selecionada) return;
+            const conhecidas = new Set(mensagens.map((m) => m.id));
+            const inedidas = novas.filter((m) => !conhecidas.has(m.id));
+            if (inedidas.length > 0) {
+                mensagens = [...mensagens, ...inedidas];
+                await rolarParaOFim();
+            }
+        } catch {
+            // falha momentânea de rede: tenta de novo no próximo ciclo
         }
     }
 
@@ -86,15 +137,18 @@
             );
             mensagens = [...mensagens, nova];
             textoNovo = "";
+            await rolarParaOFim();
             await carregarConversas();
         } catch (e) {
-            erro = e instanceof Error ? e.message : "Não foi possível enviar";
+            erroEnvio =
+                e instanceof Error ? e.message : "Não foi possível enviar";
         } finally {
             enviando = false;
         }
     }
 
-    function rotuloData(iso: string): string {
+    function rotuloData(iso: string | null): string {
+        if (!iso) return "";
         const data = new Date(iso);
         const hoje = new Date();
         if (data.toDateString() === hoje.toDateString()) {
@@ -109,7 +163,25 @@
         });
     }
 
-    onMount(() => carregarConversas());
+    onMount(() => {
+        carregarConversas().then(() => {
+            // Vindo de um botão "Conversar": /mensagens?reserva=<id> ou /mensagens?suporte=1
+            const params = $page.url.searchParams;
+            const reserva = params.get("reserva");
+            if (reserva) abrirConversa(reserva);
+            else if (params.get("suporte")) abrirConversa("suporte");
+        });
+
+        const thread = setInterval(buscarNovas, INTERVALO_THREAD_MS);
+        const lista = setInterval(() => {
+            if (document.visibilityState === "visible") carregarConversas();
+        }, INTERVALO_LISTA_MS);
+
+        return () => {
+            clearInterval(thread);
+            clearInterval(lista);
+        };
+    });
 </script>
 
 <main>
@@ -125,26 +197,20 @@
             </div>
         {:else if erro && conversas.length === 0}
             <p class="estado erro">{erro}</p>
-        {:else if conversas.length === 0}
-            <div class="vazio">
-                <div class="icone-vazio">💬</div>
-                <h2>Nenhuma conversa ainda</h2>
-                <p>
-                    Quando você reservar ou receber uma reserva, as conversas
-                    aparecem aqui.
-                </p>
-            </div>
         {:else}
             <div class="lista-conversas">
-                {#each conversas as c (c.reserva_id)}
+                {#each conversas as c (c.id)}
                     <button
                         class="item-conversa"
-                        class:ativa={selecionada === c.reserva_id}
-                        onclick={() => abrirConversa(c.reserva_id)}
+                        class:ativa={selecionada === c.id}
+                        onclick={() => abrirConversa(c.id)}
                     >
-                        <div class="avatar-conversa">
-                            {c.outro_nome.charAt(0).toUpperCase()}
-                        </div>
+                        <Avatar
+                            nome={c.outro_nome}
+                            semente={c.outro_id ?? c.id}
+                            foto={c.outro_foto}
+                            tamanho={46}
+                        />
                         <div class="info-conversa">
                             <div class="linha-topo">
                                 <span class="nome">{c.outro_nome}</span>
@@ -152,11 +218,17 @@
                                     >{rotuloData(c.ultima_mensagem_em)}</span
                                 >
                             </div>
-                            <p class="imovel-nome">{c.imovel_nome}</p>
+                            {#if c.imovel_nome}
+                                <p class="imovel-nome">{c.imovel_nome}</p>
+                            {/if}
                             <p class="previa" class:nao-lida={c.nao_lidas > 0}>
-                                {c.ultima_mensagem_de === meuId
-                                    ? "Você: "
-                                    : ""}{c.ultima_mensagem}
+                                {#if c.ultima_mensagem}
+                                    {c.ultima_mensagem_de === meuId
+                                        ? "Você: "
+                                        : ""}{c.ultima_mensagem}
+                                {:else}
+                                    Toque para falar com a equipe
+                                {/if}
                             </p>
                         </div>
                         {#if c.nao_lidas > 0}
@@ -165,23 +237,38 @@
                     </button>
                 {/each}
             </div>
+
+            {#if conversas.filter((c) => c.tipo === "reserva").length === 0}
+                <p class="dica-vazia">
+                    As conversas com anfitriões e hóspedes aparecem aqui quando
+                    você reserva ou recebe uma reserva.
+                </p>
+            {/if}
         {/if}
     </div>
 
     <div class="coluna-thread" class:visivel={selecionada !== null}>
         {#if selecionada}
-            {@const conversa = conversas.find(
-                (c) => c.reserva_id === selecionada,
-            )}
             <div class="thread-topo">
-                <button class="voltar" onclick={() => (selecionada = null)}
-                    >←</button
+                <button
+                    class="voltar"
+                    onclick={() => (selecionada = null)}
+                    aria-label="Voltar">←</button
                 >
-                {#if conversa}
+                {#if cabecalho}
+                    <Avatar
+                        nome={cabecalho.outro_nome}
+                        semente={cabecalho.outro_id ?? cabecalho.id}
+                        foto={cabecalho.outro_foto}
+                        tamanho={38}
+                    />
                     <div class="thread-info">
-                        <span class="thread-nome">{conversa.outro_nome}</span>
-                        <span class="thread-imovel">{conversa.imovel_nome}</span
-                        >
+                        <span class="thread-nome">{cabecalho.outro_nome}</span>
+                        {#if cabecalho.imovel_nome}
+                            <span class="thread-imovel"
+                                >{cabecalho.imovel_nome}</span
+                            >
+                        {/if}
                     </div>
                 {/if}
             </div>
@@ -191,7 +278,12 @@
                     <Preloader />
                 </div>
             {:else}
-                <div class="mensagens-lista">
+                <div class="mensagens-lista" bind:this={listaEl}>
+                    {#if mensagens.length === 0}
+                        <p class="sem-mensagens">
+                            Nenhuma mensagem ainda. Diga olá!
+                        </p>
+                    {/if}
                     {#each mensagens as m (m.id)}
                         <div
                             class="bolha"
@@ -232,6 +324,8 @@
         {/if}
     </div>
 </main>
+
+<ModalErro mensagem={erroEnvio} aoFechar={() => (erroEnvio = "")} />
 
 <style>
     main {
@@ -346,18 +440,20 @@
         background-color: var(--atrios-creme);
     }
 
-    .avatar-conversa {
-        flex-shrink: 0;
-        width: 46px;
-        height: 46px;
-        border-radius: 50%;
-        background-color: var(--atrios-dourado);
-        color: var(--atrios-verde-escuro);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 1rem;
+    .dica-vazia {
+        margin: 1rem 1.25rem;
+        font-size: 0.78rem;
+        line-height: 1.5;
+        color: var(--cor-texto);
+        opacity: 0.6;
+        text-align: center;
+    }
+
+    .sem-mensagens {
+        margin: auto;
+        font-size: 0.82rem;
+        color: var(--cor-texto);
+        opacity: 0.55;
     }
 
     .info-conversa {
@@ -425,7 +521,7 @@
         display: flex;
         align-items: center;
         gap: 0.8rem;
-        padding: 1rem 1.1rem;
+        padding: calc(env(safe-area-inset-top, 0px) + 0.8rem) 1.1rem 0.8rem;
         border-bottom: 1px solid var(--cor-borda);
         flex-shrink: 0;
     }

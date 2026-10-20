@@ -104,7 +104,7 @@
 
     .faixa.topo {
         bottom: auto;
-        top: 0.75rem;
+        top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
     }
 
     .linha {

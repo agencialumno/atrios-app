@@ -55,6 +55,9 @@ async function comRetry<T>(executar: () => Promise<T>): Promise<T> {
  */
 export const sql = new Proxy(base, {
   apply(alvo, _this, args: [TemplateStringsArray, ...any[]]) {
+    // sql("coluna"), sql(objeto) etc. são ajudantes de fragmento, não consultas
+    if (!Array.isArray(args[0])) return (alvo as any)(...args);
+
     // A consulta original continua "preguiçosa": serve como fragmento dentro de outra sql`...`.
     // Quando alguém dá `await`, executamos uma consulta nova, com retry.
     const consulta: any = (alvo as any)(...args);

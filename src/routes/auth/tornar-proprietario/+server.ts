@@ -10,7 +10,7 @@ export const POST: RequestHandler = async ({ request }) => {
         update usuarios
         set pode_hospedar = true
         where id = ${claims.sub}
-        returning id, nome, email, papel, telefone, pode_hospedar
+        returning id, nome, email, papel, telefone, pode_hospedar, foto_url
     `;
 
   return json(usuario);

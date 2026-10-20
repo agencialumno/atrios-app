@@ -252,9 +252,17 @@
                         </div>
                     </button>
 
-                    {#if r.checkin_token && r.status === "confirmada"}
+                    {#if r.status === "confirmada" || r.status === "concluida"}
                         <div class="link-card">
-                            <LinkCheckin token={r.checkin_token} />
+                            {#if r.checkin_token && r.status === "confirmada"}
+                                <LinkCheckin token={r.checkin_token} />
+                            {/if}
+                            <button
+                                class="conversar"
+                                onclick={() => goto(`/mensagens?reserva=${r.id}`)}
+                            >
+                                Conversar com o anfitrião
+                            </button>
                         </div>
                     {/if}
 
@@ -561,7 +569,22 @@
     }
 
     .link-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
         padding: 0 0.9rem 0.8rem;
+    }
+
+    .conversar {
+        padding: 0.6rem;
+        border: 1.5px solid var(--cor-borda);
+        border-radius: var(--raio-pill);
+        background: none;
+        color: var(--cor-texto);
+        font-family: var(--fonte-corpo);
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
     }
 
     .rodape-card {

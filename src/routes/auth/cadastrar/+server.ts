@@ -2,6 +2,7 @@ import { json, error } from "@sveltejs/kit";
 import { randomUUID } from "node:crypto";
 import { sql } from "$lib/server/db";
 import { gerarHashSenha, gerarToken } from "$lib/server/auth";
+import { senhaForte } from "$lib/senha";
 import type { RequestHandler } from "./$types";
 
 interface CorpoCadastro {
@@ -17,6 +18,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
   if (!corpo.nome || !corpo.email || !corpo.senha) {
     throw error(400, "nome, e-mail e senha são obrigatórios");
+  }
+
+  if (!senhaForte(corpo.senha)) {
+    throw error(
+      400,
+      "a senha precisa ter 8 caracteres, maiúscula, minúscula, número e caractere especial",
+    );
   }
 
   const [existente] = await sql`
@@ -36,7 +44,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const [usuario] = await sql`
         insert into usuarios (id, nome, email, senha_hash, papel, telefone)
         values (${id}, ${corpo.nome}, ${corpo.email}, ${senhaHash}, ${papel}, ${corpo.telefone ?? null})
-        returning id, nome, email, papel, telefone, pode_hospedar
+        returning id, nome, email, papel, telefone, pode_hospedar, foto_url
     `;
 
   const token = await gerarToken(usuario.id);

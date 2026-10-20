@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import { auth } from "$lib/stores/auth";
     import { icones } from "$lib/icones";
+    import Avatar from "$lib/components/Avatar.svelte";
 
     interface Item {
         nome: string;
@@ -49,7 +50,6 @@
         if (item.rota) goto(item.rota);
     }
 
-    let inicial = $derived(($auth.usuario?.nome ?? "").charAt(0).toUpperCase());
 </script>
 
 <header class="barra">
@@ -76,7 +76,12 @@
             onclick={() => goto("/perfil")}
             aria-label="Perfil"
         >
-            {inicial}
+            <Avatar
+                nome={$auth.usuario?.nome ?? ""}
+                semente={$auth.usuario?.id ?? ""}
+                foto={$auth.usuario?.foto_url}
+                tamanho={36}
+            />
         </button>
     </div>
 </header>
@@ -162,12 +167,13 @@
         height: 40px;
         flex-shrink: 0;
         border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
         border: 2px solid var(--atrios-branco);
-        background-color: var(--atrios-dourado);
-        color: var(--atrios-verde-escuro);
-        font-family: var(--fonte-titulo);
-        font-weight: 700;
-        font-size: 0.9rem;
+        background: none;
         cursor: pointer;
         box-shadow: 0 2px 10px rgba(31, 42, 38, 0.12);
     }
