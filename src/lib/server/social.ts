@@ -21,8 +21,14 @@ export interface PerfilSocial {
 export async function criarEstado(
   provedor: Provedor,
   noApp: boolean,
+  excluirUsuarioId?: string,
 ): Promise<string> {
-  return new SignJWT({ p: provedor, app: noApp, n: randomUUID() })
+  return new SignJWT({
+    p: provedor,
+    app: noApp,
+    n: randomUUID(),
+    ...(excluirUsuarioId ? { exc: excluirUsuarioId } : {}),
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("10m")
     .sign(segredo);
@@ -31,14 +37,40 @@ export async function criarEstado(
 export async function lerEstado(
   estado: string | null,
   provedor: Provedor,
-): Promise<{ app: boolean }> {
+): Promise<{ app: boolean; excluir: string | null }> {
   if (!estado) throw error(400, "login social inválido");
   try {
     const { payload } = await jwtVerify(estado, segredo);
     if (payload.p !== provedor) throw new Error("provedor diferente");
-    return { app: payload.app === true };
+    return {
+      app: payload.app === true,
+      excluir: typeof payload.exc === "string" ? payload.exc : null,
+    };
   } catch {
     throw error(400, "o login social expirou, tente de novo");
+  }
+}
+
+/**
+ * Prova de que o usuário logado pediu a exclusão: vai na URL de início do login social,
+ * vale 10 minutos e só serve para esta finalidade (não é um token de sessão).
+ */
+export async function criarProvaExclusao(usuarioId: string): Promise<string> {
+  return new SignJWT({ sub: usuarioId, fin: "excluir-conta" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("10m")
+    .sign(segredo);
+}
+
+export async function lerProvaExclusao(prova: string): Promise<string> {
+  try {
+    const { payload } = await jwtVerify(prova, segredo);
+    if (payload.fin !== "excluir-conta" || typeof payload.sub !== "string") {
+      throw new Error("prova inválida");
+    }
+    return payload.sub;
+  } catch {
+    throw error(400, "o pedido de exclusão expirou, tente de novo");
   }
 }
 
@@ -47,14 +79,14 @@ export async function entrarComPerfil(perfil: PerfilSocial): Promise<string> {
   const coluna = perfil.provedor === "google" ? "google_id" : "apple_id";
 
   const [porId] = await sql`
-        select id from usuarios where ${sql(coluna)} = ${perfil.id}
+        select id from usuarios where ${sql(coluna)} = ${perfil.id} and excluida_em is null
     `;
   if (porId) return gerarToken(porId.id);
 
   // Mesmo e-mail de uma conta já existente: vincula o provedor a ela
   if (perfil.email) {
     const [porEmail] = await sql`
-            select id from usuarios where lower(email) = ${perfil.email.toLowerCase()}
+            select id from usuarios where lower(email) = ${perfil.email.toLowerCase()} and excluida_em is null
         `;
     if (porEmail) {
       await sql`
@@ -102,6 +134,14 @@ export function paginaDeRetorno(token: string, noApp: boolean): Response {
 
   return pagina(
     `<div><h2>Login concluído</h2><p>Voltando para o Átrios...</p><a href="${destino}">Abrir o Átrios</a></div><script>location.replace(${JSON.stringify(destino)});</script>`,
+  );
+}
+
+/** Depois de excluir a conta pelo login social: volta ao app (deep link) ou ao site */
+export function paginaContaExcluida(noApp: boolean): Response {
+  const destino = noApp ? "atrios://conta-excluida" : "/login#excluida=1";
+  return pagina(
+    `<div><h2>Conta excluída</h2><p>Sua conta foi excluída. Voltando para o Átrios...</p><a href="${destino}">Voltar ao Átrios</a></div><script>location.replace(${JSON.stringify(destino)});</script>`,
   );
 }
 

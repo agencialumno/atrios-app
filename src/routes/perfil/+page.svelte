@@ -219,6 +219,10 @@
     </div>
 
     <button class="botao-sair" onclick={sair}>Sair da conta</button>
+    <button class="botao-excluir" onclick={() => goto("/perfil/excluir")}
+        >Excluir minha conta</button
+    >
+    <a class="link-privacidade" href="/privacidade">Política de privacidade</a>
 </main>
 
 <ModalErro mensagem={erro} aoFechar={() => (erro = "")} />
@@ -383,6 +387,25 @@
         text-decoration: underline;
         cursor: pointer;
         font-family: var(--fonte-corpo);
+    }
+
+    .botao-excluir {
+        align-self: center;
+        background: none;
+        border: none;
+        color: #b3261e;
+        font-size: 0.85rem;
+        text-decoration: underline;
+        cursor: pointer;
+        font-family: var(--fonte-corpo);
+    }
+
+    .link-privacidade {
+        align-self: center;
+        color: var(--cor-texto);
+        opacity: 0.6;
+        font-size: 0.8rem;
+        text-decoration: underline;
     }
 
     /* ===== Desktop: conteúdo centralizado, cartões em grade ===== */

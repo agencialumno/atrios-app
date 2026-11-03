@@ -115,6 +115,11 @@
                 {/each}
             </ul>
 
+            <p class="aviso-privacidade">
+                Ao criar a conta, você concorda com o uso dos seus dados
+                conforme a <a href="/privacidade">política de privacidade</a>.
+            </p>
+
             <button type="submit" disabled={!podeCadastrar}>
                 {carregando ? "Criando conta..." : "Criar conta"}
             </button>
@@ -131,6 +136,19 @@
 <ModalErro mensagem={erro} aoFechar={() => (erro = "")} />
 
 <style>
+    .aviso-privacidade {
+        margin: 0;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        color: var(--cor-texto);
+        opacity: 0.7;
+    }
+
+    .aviso-privacidade a {
+        color: inherit;
+        text-decoration: underline;
+    }
+
     main {
         min-height: 100dvh;
         background-color: var(--atrios-branco);

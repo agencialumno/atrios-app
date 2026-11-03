@@ -7,3 +7,4 @@ Daqui para frente, as migrações novas ficam aqui.
 
 - 009_guia_checkin.sql: guia do hóspede e link de check-in
 - 010_mensagens_perfil_social.sql: foto de perfil, login social e conversa de suporte
+- 011_exclusao_conta.sql: coluna excluida_em (conta anonimizada na exclusão)

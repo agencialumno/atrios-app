@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { error } from "@sveltejs/kit";
 import { JWT_SECRET } from "$env/static/private";
+import { sql } from "$lib/server/db";
 
 const segredo = new TextEncoder().encode(JWT_SECRET);
 const RODADAS_HASH = 10;
@@ -37,14 +38,23 @@ export async function extrairClaims(headers: Headers): Promise<Claims> {
   }
 
   const token = cabecalho.slice("Bearer ".length);
+  let sub: string;
 
   try {
     const { payload } = await jwtVerify(token, segredo, {
       clockTolerance: 60, // tolera pequena diferença de relógio
     });
     if (typeof payload.sub !== "string") throw new Error("token sem sub");
-    return { sub: payload.sub };
+    sub = payload.sub;
   } catch {
     throw error(401, "token inválido ou expirado");
   }
+
+  // Conta excluída: o token antigo (vale 30 dias) não pode mais agir
+  const [excluida] = await sql`
+        select 1 as x from usuarios where id = ${sub} and excluida_em is not null
+    `;
+  if (excluida) throw error(401, "conta excluída");
+
+  return { sub };
 }

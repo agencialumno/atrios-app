@@ -32,6 +32,12 @@ export async function concluirLoginComToken(token: string): Promise<void> {
 /** No site: o servidor volta para /login#token=... */
 export async function concluirLoginDoFragmento(): Promise<boolean> {
   const fragmento = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  if (fragmento.get("excluida")) {
+    // Voltou do login social depois de excluir a conta: encerra a sessão local
+    history.replaceState(null, "", window.location.pathname);
+    auth.logout();
+    return false;
+  }
   const token = fragmento.get("token");
   if (!token) return false;
   history.replaceState(null, "", window.location.pathname);
@@ -53,6 +59,11 @@ export async function ouvirLoginSocial(
     for (const bruta of urls ?? []) {
       try {
         const url = new URL(bruta);
+        if (url.protocol === "atrios:" && url.hostname === "conta-excluida") {
+          auth.logout();
+          await goto("/login", { replaceState: true });
+          continue;
+        }
         if (url.protocol !== "atrios:" || url.hostname !== "auth") continue;
         const token = url.searchParams.get("token");
         if (token) await concluirLoginComToken(token);

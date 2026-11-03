@@ -1,6 +1,6 @@
 import { redirect, error } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
-import { criarEstado } from "$lib/server/social";
+import { criarEstado, lerProvaExclusao } from "$lib/server/social";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -8,9 +8,11 @@ export const GET: RequestHandler = async ({ url }) => {
     throw error(503, "o login com Apple ainda não está configurado");
   }
 
+  const prova = url.searchParams.get("exc");
   const estado = await criarEstado(
     "apple",
     url.searchParams.get("app") === "1",
+    prova ? await lerProvaExclusao(prova) : undefined,
   );
   const params = new URLSearchParams({
     client_id: env.APPLE_CLIENT_ID,

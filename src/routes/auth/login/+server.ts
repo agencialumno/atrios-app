@@ -16,12 +16,13 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const [usuario] = await sql`
-        select id, nome, email, senha_hash, papel, telefone, pode_hospedar, foto_url
+        select id, nome, email, senha_hash, papel, telefone, pode_hospedar, foto_url, excluida_em
         from usuarios
         where email = ${corpo.email}
     `;
 
-  if (!usuario) {
+  // Conta excluída responde igual a "não existe": não revela nada
+  if (!usuario || usuario.excluida_em) {
     throw error(401, "e-mail ou senha incorretos");
   }
 

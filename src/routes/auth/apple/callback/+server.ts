@@ -1,9 +1,13 @@
 import { error } from "@sveltejs/kit";
-import { SignJWT, createRemoteJWKSet, importPKCS8, jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { env } from "$env/dynamic/private";
+import { sql } from "$lib/server/db";
+import { segredoDaApple, revogarTokenApple } from "$lib/server/apple";
+import { exigirContaExcluivel, excluirConta } from "$lib/server/conta";
 import {
   entrarComPerfil,
   lerEstado,
+  paginaContaExcluida,
   paginaDeErro,
   paginaDeRetorno,
 } from "$lib/server/social";
@@ -12,22 +16,6 @@ import type { RequestHandler } from "./$types";
 const chavesApple = createRemoteJWKSet(
   new URL("https://appleid.apple.com/auth/keys"),
 );
-
-/** A Apple exige um "client secret" que é um JWT assinado com a chave .p8 */
-async function segredoDaApple(): Promise<string> {
-  const chave = await importPKCS8(
-    env.APPLE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-    "ES256",
-  );
-  return new SignJWT({})
-    .setProtectedHeader({ alg: "ES256", kid: env.APPLE_KEY_ID! })
-    .setIssuer(env.APPLE_TEAM_ID!)
-    .setSubject(env.APPLE_CLIENT_ID!)
-    .setAudience("https://appleid.apple.com")
-    .setIssuedAt()
-    .setExpirationTime("5m")
-    .sign(chave);
-}
 
 // A Apple responde com POST (form_post). O SvelteKit libera essa origem em svelte.config.js.
 export const POST: RequestHandler = async ({ request, url }) => {
@@ -43,10 +31,8 @@ export const POST: RequestHandler = async ({ request, url }) => {
   let noApp = false;
   try {
     const form = await request.formData();
-    ({ app: noApp } = await lerEstado(
-      String(form.get("state") ?? ""),
-      "apple",
-    ));
+    const estado = await lerEstado(String(form.get("state") ?? ""), "apple");
+    noApp = estado.app;
 
     if (form.get("error")) throw new Error("login cancelado");
     const code = String(form.get("code") ?? "");
@@ -72,6 +58,19 @@ export const POST: RequestHandler = async ({ request, url }) => {
       issuer: "https://appleid.apple.com",
       audience: env.APPLE_CLIENT_ID,
     });
+
+    // Exclusão da conta: prova quem é o dono, revoga o acesso na Apple e só então anonimiza
+    if (estado.excluir) {
+      const [dono] = await sql`
+            select id from usuarios
+            where id = ${estado.excluir} and apple_id = ${String(payload.sub)} and excluida_em is null
+        `;
+      if (!dono) throw new Error("Este Apple ID não é o da conta que você quer excluir.");
+      await exigirContaExcluivel(dono.id); // não revoga se a exclusão vai ser barrada
+      await revogarTokenApple(dados);
+      await excluirConta(dono.id);
+      return paginaContaExcluida(noApp);
+    }
 
     // A Apple só manda o nome na primeira autorização, no campo "user"
     let nome: string | null = null;

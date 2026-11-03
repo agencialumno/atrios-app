@@ -1,9 +1,12 @@
 import { error } from "@sveltejs/kit";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { env } from "$env/dynamic/private";
+import { sql } from "$lib/server/db";
+import { ErroConta, excluirConta } from "$lib/server/conta";
 import {
   entrarComPerfil,
   lerEstado,
+  paginaContaExcluida,
   paginaDeErro,
   paginaDeRetorno,
 } from "$lib/server/social";
@@ -20,10 +23,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
   let noApp = false;
   try {
-    ({ app: noApp } = await lerEstado(
-      url.searchParams.get("state"),
-      "google",
-    ));
+    const estado = await lerEstado(url.searchParams.get("state"), "google");
+    noApp = estado.app;
 
     const code = url.searchParams.get("code");
     if (!code) throw new Error("o Google não devolveu o código de acesso");
@@ -50,6 +51,17 @@ export const GET: RequestHandler = async ({ url }) => {
     });
     if (payload.email_verified === false) {
       throw new Error("o e-mail do Google não está verificado");
+    }
+
+    // Exclusão da conta: o login serve só para provar quem é o dono; nada de token de sessão
+    if (estado.excluir) {
+      const [dono] = await sql`
+            select id from usuarios
+            where id = ${estado.excluir} and google_id = ${String(payload.sub)} and excluida_em is null
+        `;
+      if (!dono) throw new ErroConta("Esta conta do Google não é a conta que você quer excluir.", 403);
+      await excluirConta(dono.id);
+      return paginaContaExcluida(noApp);
     }
 
     const token = await entrarComPerfil({
