@@ -7,6 +7,7 @@
     import { api } from "$lib/api/client";
     import { auth, type Usuario } from "$lib/stores/auth";
     import { publicacao } from "$lib/stores/publicacao";
+    import { iniciarNaoLidas } from "$lib/naoLidas";
     import BarraNavegacao from "$lib/components/BarraNavegacao.svelte";
     import BarraNavegacaoDesktop from "$lib/components/BarraNavegacaoDesktop.svelte";
     import ModalErro from "$lib/components/ModalErro.svelte";
@@ -43,6 +44,13 @@
             "--altura-publicacao",
             extra,
         );
+    });
+
+    // Contador de mensagens não lidas: liga com a sessão e desliga (zerando) ao sair
+    let logado = $derived(!!$auth.usuario);
+    $effect(() => {
+        if (!logado) return;
+        return iniciarNaoLidas();
     });
 
     let erroSocial = $state("");

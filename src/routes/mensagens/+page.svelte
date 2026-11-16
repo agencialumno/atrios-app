@@ -3,6 +3,7 @@
     import { page } from "$app/stores";
     import { api } from "$lib/api/client";
     import { auth } from "$lib/stores/auth";
+    import { atualizarNaoLidas } from "$lib/naoLidas";
     import Avatar from "$lib/components/Avatar.svelte";
     import Preloader from "$lib/components/Preloader.svelte";
     import ModalErro from "$lib/components/ModalErro.svelte";
@@ -92,6 +93,7 @@
             conversas = conversas.map((c) =>
                 c.id === chave ? { ...c, nao_lidas: 0 } : c,
             );
+            void atualizarNaoLidas();
         } catch (e) {
             erro = e instanceof Error ? e.message : "Erro ao abrir conversa";
             selecionada = null;
@@ -116,6 +118,8 @@
             const inedidas = todas.filter((m) => !conhecidas.has(m.id));
             if (inedidas.length > 0) {
                 mensagens = todas;
+                // O servidor já marcou como lidas: com a conversa aberta, não conta como não lida
+                void atualizarNaoLidas();
                 await rolarParaOFim();
             }
         } catch {

@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import { auth } from "$lib/stores/auth";
     import { icones } from "$lib/icones";
+    import { naoLidas } from "$lib/naoLidas";
     import Avatar from "$lib/components/Avatar.svelte";
 
     interface Item {
@@ -46,6 +47,15 @@
         );
     }
 
+    function rotuloBadge(total: number): string {
+        return total > 99 ? "99+" : String(total);
+    }
+
+    function rotuloAcessivel(item: Item, total: number): string {
+        if (item.rota !== "/mensagens" || total <= 0) return item.nome;
+        return `${item.nome}, ${total} ${total === 1 ? "não lida" : "não lidas"}`;
+    }
+
     function abrir(item: Item) {
         if (item.rota) goto(item.rota);
     }
@@ -64,8 +74,16 @@
                     class="item"
                     class:ativo={estaAtivo(item)}
                     onclick={() => abrir(item)}
+                    aria-label={rotuloAcessivel(item, $naoLidas)}
                 >
-                    <span class="icone">{@html item.icone}</span>
+                    <span class="icone">
+                        {@html item.icone}
+                        {#if item.rota === "/mensagens" && $naoLidas > 0}
+                            <span class="badge" aria-hidden="true"
+                                >{rotuloBadge($naoLidas)}</span
+                            >
+                        {/if}
+                    </span>
                     {item.nome}
                 </button>
             {/each}
@@ -152,6 +170,7 @@
     }
 
     .icone {
+        position: relative;
         display: inline-flex;
         width: 18px;
         height: 18px;
@@ -160,6 +179,25 @@
     .icone :global(svg) {
         width: 100%;
         height: 100%;
+    }
+
+    /* Posição absoluta sobre o ícone: não desloca o layout da barra */
+    .badge {
+        position: absolute;
+        top: -8px;
+        right: -10px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        box-sizing: border-box;
+        border-radius: 9px;
+        background-color: #d93025;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        pointer-events: none;
     }
 
     .avatar {
