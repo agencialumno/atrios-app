@@ -21,33 +21,39 @@ export function abrirMapa(endereco: string): Promise<void> {
   );
 }
 
+export interface DestinoUber {
+  endereco: string;
+  nome?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
 /**
- * Chama o Uber com o endereço como destino.
- * No app (Tauri) o esquema uber:// não é liberado pelo opener, então usa o link universal https,
- * que o sistema entrega ao app do Uber quando instalado.
- * No navegador, tenta o app (uber://) e, se a página continua visível, cai no link web em aba nova.
+ * Link universal do Uber com o endereço como destino. Sem uber://: o iOS entrega o link https ao app
+ * do Uber quando instalado e abre a página web quando não está.
  */
-export async function abrirUber(endereco: string): Promise<void> {
-  const destino = codificar(endereco);
-  const web = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${destino}`;
-
-  if (isTauri()) {
-    await abrirLinkExterno(web);
-    return;
+export function linkUber(destino: DestinoUber): string {
+  const partes = [
+    "action=setPickup",
+    "pickup=my_location",
+    `dropoff[formatted_address]=${codificar(destino.endereco)}`,
+  ];
+  if (destino.nome) partes.push(`dropoff[nickname]=${codificar(destino.nome)}`);
+  if (destino.latitude != null && destino.longitude != null) {
+    partes.push(`dropoff[latitude]=${destino.latitude}`);
+    partes.push(`dropoff[longitude]=${destino.longitude}`);
   }
+  return `https://m.uber.com/ul/?${partes.join("&")}`;
+}
 
-  const link = document.createElement("a");
-  link.href = `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${destino}`;
-  link.style.display = "none";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  setTimeout(() => {
-    if (document.visibilityState === "visible") {
-      window.open(web, "_blank", "noopener");
-    }
-  }, 1200);
+/**
+ * Clique do <a> do Uber. No navegador deixa o link nativo abrir (target="_blank"); no app (Tauri)
+ * cancela o link e abre pelo mesmo caminho do botão do mapa.
+ */
+export function aoClicarLink(evento: MouseEvent, url: string): void {
+  if (!isTauri()) return;
+  evento.preventDefault();
+  void abrirLinkExterno(url);
 }
 
 /** Copia o texto; usa um campo temporário quando a API de área de transferência não está disponível */

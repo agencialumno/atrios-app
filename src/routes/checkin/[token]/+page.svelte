@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { page } from "$app/stores";
     import { api } from "$lib/api/client";
-    import { abrirMapa, abrirUber } from "$lib/externo";
+    import { abrirMapa, aoClicarLink, linkUber } from "$lib/externo";
     import { icones } from "$lib/icones";
     import { formatarDataLonga, somarDias } from "$lib/datas";
     import Preloader from "$lib/components/Preloader.svelte";
@@ -38,6 +38,8 @@
             endereco: string;
             cidade: string;
             foto: string | null;
+            latitude?: number | null;
+            longitude?: number | null;
         };
         guia: Guia | null;
     }
@@ -200,6 +202,17 @@
         dados ? `${dados.imovel.endereco}, ${dados.imovel.cidade}` : "",
     );
 
+    let linkDoUber = $derived(
+        dados
+            ? linkUber({
+                  endereco: enderecoCompleto,
+                  nome: dados.imovel.nome,
+                  latitude: dados.imovel.latitude,
+                  longitude: dados.imovel.longitude,
+              })
+            : "",
+    );
+
     // Datas do botão "Quer ficar mais dias?": começa no checkout atual e pede 1 noite a mais
     let linkEstender = $derived.by(() => {
         if (!dados?.reserva.data_checkout) return "";
@@ -244,14 +257,16 @@
         <div class="grade">
             <aside class="lateral">
                 <section class="cartao acoes">
-                    <button
-                        type="button"
+                    <a
                         class="botao-principal"
-                        onclick={() => abrirUber(enderecoCompleto)}
+                        href={linkDoUber}
+                        target="_blank"
+                        rel="noopener"
+                        onclick={(e) => aoClicarLink(e, linkDoUber)}
                     >
                         <span class="icone">{@html icones.garagem}</span>
                         Chamar Uber
-                    </button>
+                    </a>
                     <button
                         type="button"
                         class="botao-secundario"
