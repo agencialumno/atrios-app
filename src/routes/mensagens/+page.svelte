@@ -32,7 +32,7 @@
         lida: boolean;
     }
 
-    const INTERVALO_THREAD_MS = 4000;
+    const INTERVALO_THREAD_MS = 5000;
     const INTERVALO_LISTA_MS = 15000;
 
     let conversas = $state<Conversa[]>([]);
@@ -101,29 +101,33 @@
         await rolarParaOFim();
     }
 
-    // Polling simples: busca só o que chegou depois da última mensagem conhecida
+    // Atualização da conversa aberta: busca o histórico inteiro e junta pelo id. Não depende de
+    // comparar horários (o banco guarda microssegundos, o app só milissegundos), então uma
+    // resposta da equipe nunca fica de fora.
     async function buscarNovas() {
         const chave = selecionada;
         if (!chave || carregandoThread || enviando) return;
-        const ultima = mensagens[mensagens.length - 1];
         try {
-            const sufixo = ultima
-                ? `?depois_de=${encodeURIComponent(ultima.criado_em)}`
-                : "";
-            const novas = await api<Mensagem[]>(
-                `/conversas/${chave}/mensagens${sufixo}`,
-                { autenticado: true },
-            );
+            const todas = await api<Mensagem[]>(`/conversas/${chave}/mensagens`, {
+                autenticado: true,
+            });
             if (chave !== selecionada) return;
             const conhecidas = new Set(mensagens.map((m) => m.id));
-            const inedidas = novas.filter((m) => !conhecidas.has(m.id));
+            const inedidas = todas.filter((m) => !conhecidas.has(m.id));
             if (inedidas.length > 0) {
-                mensagens = [...mensagens, ...inedidas];
+                mensagens = todas;
                 await rolarParaOFim();
             }
         } catch {
             // falha momentânea de rede: tenta de novo no próximo ciclo
         }
+    }
+
+    // Ao voltar para o app (ou para a aba) atualiza na hora, sem esperar o próximo ciclo
+    function aoVoltarOFoco() {
+        if (document.visibilityState !== "visible") return;
+        void carregarConversas();
+        void buscarNovas();
     }
 
     async function enviar() {
@@ -177,9 +181,14 @@
             if (document.visibilityState === "visible") carregarConversas();
         }, INTERVALO_LISTA_MS);
 
+        document.addEventListener("visibilitychange", aoVoltarOFoco);
+        window.addEventListener("focus", aoVoltarOFoco);
+
         return () => {
             clearInterval(thread);
             clearInterval(lista);
+            document.removeEventListener("visibilitychange", aoVoltarOFoco);
+            window.removeEventListener("focus", aoVoltarOFoco);
         };
     });
 </script>
